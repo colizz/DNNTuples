@@ -196,7 +196,7 @@ std::pair<FatJetMatching::FatJetLabel, std::vector<const reco::GenParticle*> > F
       if (result.first != FatJetLabel::Invalid){
         return result;
       }
-    }else if (pdgid == ParticleID::p_h0){
+    }else if (pdgid == ParticleID::p_h0 || pdgid == ParticleID::p_hc){
       auto result = higgs_label(jet, gp, distR);
       if (result.first != FatJetLabel::Invalid){
         return result;
@@ -911,6 +911,8 @@ std::pair<FatJetMatching::FatJetLabel, std::vector<const reco::GenParticle*> > F
       if (dr_q1<distR && dr_q2<distR){
         if (pdgid_q1 == ParticleID::p_b && pdgid_q2 == ParticleID::p_b) {
           return std::make_pair(FatJetLabel::H_bb, higgs_v);
+        }else if ((pdgid_q1 == ParticleID::p_b && pdgid_q2 == ParticleID::p_c) || (pdgid_q1 == ParticleID::p_c && pdgid_q2 == ParticleID::p_b)) {
+          return std::make_pair(FatJetLabel::H_bc, higgs_v);
         }else if (pdgid_q1 == ParticleID::p_c && pdgid_q2 == ParticleID::p_c) {
           return std::make_pair(FatJetLabel::H_cc, higgs_v);
         }else if (pdgid_q1 == ParticleID::p_s && pdgid_q2 == ParticleID::p_s) {

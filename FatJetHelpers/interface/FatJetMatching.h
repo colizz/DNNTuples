@@ -33,6 +33,7 @@ enum PdgId { p_unknown, p_d, p_u, p_s, p_c, p_b, p_t, p_bprime, p_tprime,
   p_sigmacplus = 4212, p_sigmacpp = 4222, p_xicplus = 4232, p_omegac0 = 4332,
   p_sigmabminus = 5112, p_lambdab0 = 5122, p_xibminus = 5132, p_sigmab0 = 5212, p_sigmabplus = 5222,
   p_xib0 = 5232, p_omegabminus = 5332,
+  p_hc = 5000003,
 };
 }
 
@@ -53,7 +54,7 @@ public:
       W_cq_c, W_qq_c, W_ev_c, W_mv_c, W_leptauev_c, W_leptaumv_c, W_hadtauv_c,
       W_cq, W_qq, W_ev, W_mv, W_leptauev, W_leptaumv, W_hadtauv,
     Z_all=300, Z_bb, Z_cc, Z_qq,
-    H_all=400, H_bb, H_cc, H_ss, H_qq, H_qqqq, H_leptauehadtau, H_leptaumhadtau, H_hadtauhadtau,
+    H_all=400, H_bb, H_bc, H_cc, H_ss, H_qq, H_qqqq, H_leptauehadtau, H_leptaumhadtau, H_hadtauhadtau,
     H_wwall=500, H_ww4q_2c, H_ww4q_1c, H_ww4q_0c, H_ww3q_2c, H_ww3q_1c, H_ww3q_0c, H_ww2qsame, H_ww2qsep, 
       H_wwevqq_1c, H_wwevqq_0c, H_wwmvqq_1c, H_wwmvqq_0c, H_wwleptauevqq_1c, H_wwleptauevqq_0c, H_wwleptaumvqq_1c, H_wwleptaumvqq_0c, H_wwhadtauvqq_1c, H_wwhadtauvqq_0c,
     QCD_all=900, QCD_bb, QCD_cc, QCD_b, QCD_c, QCD_others
