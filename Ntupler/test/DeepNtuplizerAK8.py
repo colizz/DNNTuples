@@ -233,6 +233,8 @@ process.deepntuplizer.isHerwig = 'herwig' in _inputfile.lower()
 process.deepntuplizer.isMadGraph = 'madgraph' in _inputfile.lower()
 
 process.deepntuplizer.isTrainSample = options.isTrainSample
+# adding MET
+process.deepntuplizer.addMET = True
 if not options.inputDataset:
     # interactive running
     process.deepntuplizer.isTrainSample = False
