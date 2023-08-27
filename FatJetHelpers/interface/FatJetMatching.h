@@ -61,6 +61,7 @@ public:
   void flavorLabel(const pat::Jet *jet, const reco::GenParticleCollection& genParticles, double distR, bool isMDTagger);
 
 private:
+  void topww_label(const pat::Jet *jet, const reco::GenParticleCollection& genParticles, double distR);
   void top_label(const pat::Jet *jet, const reco::GenParticle *parton, const reco::GenParticleCollection& genParticles, double distR);
   void w_label(const pat::Jet *jet, const reco::GenParticle *parton, double distR, bool is_from_top);
   void z_label(const pat::Jet *jet, const reco::GenParticle *parton, double distR);

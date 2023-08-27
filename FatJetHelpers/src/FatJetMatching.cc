@@ -29,54 +29,60 @@ void FatJetMatching::flavorLabel(const pat::Jet* jet,
     }
   }
 
-  bool found_higgs = false;
-  for (unsigned ipart = 0; ipart<genParticles.size(); ++ipart){
-    const auto *gp = &genParticles[ipart];
+  // bool found_higgs = false;
+  // for (unsigned ipart = 0; ipart<genParticles.size(); ++ipart){
+  //   const auto *gp = &genParticles[ipart];
 
-    if (processed_.count(gp)) continue;
-    processed_.insert(gp);
+  //   if (processed_.count(gp)) continue;
+  //   processed_.insert(gp);
 
-    auto pdgid = std::abs(gp->pdgId());
-    if (pdgid == ParticleID::p_t){
-      clearResult();
-      top_label(jet, gp, genParticles, distR);
-      if (getResult().label != "Invalid"){
-        return;
-      }
-    }else if (pdgid == ParticleID::p_h0 || pdgid == ParticleID::p_H0 || pdgid == ParticleID::p_Hplus || pdgid == ParticleID::p_Hbsm || pdgid == ParticleID::p_LQbsm){
-      found_higgs = true;
-      // Higgs found in the record so we'll stop recongnizing
-      // following W or Zs as Higgs (in case of HWW/ZZ)
-      clearResult();
-      higgs_label(jet, gp, distR);
-      if (getResult().label != "Invalid"){
-        return;
-      }
-    }else if (!found_higgs && (pdgid == ParticleID::p_Wplus || pdgid == ParticleID::p_Z0)){
-      clearResult();
-      higgs_label(jet, gp, distR);
-      if (getResult().label != "Invalid"){
-        return;
-      }
-    }
-    // special W/Z labels for non-MD tagger
-    else if (!isMDTagger && pdgid == ParticleID::p_Wplus){
-      clearResult();
-      w_label(jet, gp, distR, /*is_from_top=*/ false);
-      if (getResult().label != "Invalid"){
-        return;
-      }
-    }else if (!isMDTagger && pdgid == ParticleID::p_Z0){
-      clearResult();
-      z_label(jet, gp, distR);
-      if (getResult().label != "Invalid"){
-        return;
-      }
-    }
+  //   auto pdgid = std::abs(gp->pdgId());
+  //   if (pdgid == ParticleID::p_t){
+  //     clearResult();
+  //     top_label(jet, gp, genParticles, distR);
+  //     if (getResult().label != "Invalid"){
+  //       return;
+  //     }
+  //   }else if (pdgid == ParticleID::p_h0 || pdgid == ParticleID::p_H0 || pdgid == ParticleID::p_Hplus || pdgid == ParticleID::p_Hbsm || pdgid == ParticleID::p_LQbsm){
+  //     found_higgs = true;
+  //     // Higgs found in the record so we'll stop recongnizing
+  //     // following W or Zs as Higgs (in case of HWW/ZZ)
+  //     clearResult();
+  //     higgs_label(jet, gp, distR);
+  //     if (getResult().label != "Invalid"){
+  //       return;
+  //     }
+  //   }else if (!found_higgs && (pdgid == ParticleID::p_Wplus || pdgid == ParticleID::p_Z0)){
+  //     clearResult();
+  //     higgs_label(jet, gp, distR);
+  //     if (getResult().label != "Invalid"){
+  //       return;
+  //     }
+  //   }
+  //   // special W/Z labels for non-MD tagger
+  //   else if (!isMDTagger && pdgid == ParticleID::p_Wplus){
+  //     clearResult();
+  //     w_label(jet, gp, distR, /*is_from_top=*/ false);
+  //     if (getResult().label != "Invalid"){
+  //       return;
+  //     }
+  //   }else if (!isMDTagger && pdgid == ParticleID::p_Z0){
+  //     clearResult();
+  //     z_label(jet, gp, distR);
+  //     if (getResult().label != "Invalid"){
+  //       return;
+  //     }
+  //   }
+  // }
+
+  // if (genParticles.size() != processed_.size())
+  //   throw std::logic_error("[FatJetMatching::flavor] Not all genParticles are processed!");
+
+  clearResult();
+  topww_label(jet, genParticles, distR);
+  if (getResult().label != "Invalid"){
+    return;
   }
-
-  if (genParticles.size() != processed_.size())
-    throw std::logic_error("[FatJetMatching::flavor] Not all genParticles are processed!");
 
   clearResult();
   qcd_label(jet, genParticles, distR);
@@ -208,6 +214,108 @@ std::pair<std::vector<const reco::GenParticle*>, int> FatJetMatching::getTauDaug
     if (pdgid == ParticleID::p_muminus)  return std::make_pair(daughters, 1);
   }
   return std::make_pair(daughters, 2); // hadronic mode
+}
+
+void FatJetMatching::topww_label(const pat::Jet* jet, const reco::GenParticleCollection& genParticles, double distR)
+{
+  // special for ttbar->WW->lvqq matching
+  std::vector<const reco::GenParticle*> ww_qqdaus, ww_lvdaus, bb;
+  int iw = 0;
+
+  for (unsigned ipart = 0; ipart<genParticles.size(); ++ipart){
+    const auto *gp = &genParticles[ipart];
+    auto pdgid = std::abs(gp->pdgId());
+
+    if (pdgid == ParticleID::p_t){
+      
+      // loop over top daughters
+      auto top = getFinal(gp);
+      auto tdaus = getDaughters(top);
+      for (const auto &dau : tdaus){
+        auto pdgid_dau = std::abs(dau->pdgId());
+
+        if (pdgid_dau == ParticleID::p_Wplus){
+          auto w = getFinal(dau);
+
+          // loop over W daughters
+          for (unsigned j=0; j<w->numberOfDaughters(); ++j){
+            const auto *ddau = dynamic_cast<const reco::GenParticle*>(w->daughter(j));
+            auto dpdgid = std::abs(ddau->pdgId());
+            if (dpdgid >= ParticleID::p_d && dpdgid <= ParticleID::p_b) {
+              ww_qqdaus.push_back(ddau);
+            }else {
+              ww_lvdaus.push_back(ddau);
+            }
+          }
+          iw++;
+        } // end finding a W boson from top
+        else if (pdgid_dau == ParticleID::p_b){
+          bb.push_back(dau);
+        }
+      } // end finding top quarks
+    }
+    if (iw >= 2) break;
+  }
+  if (debug_) {
+    for (unsigned ipart = 0; ipart<ww_qqdaus.size(); ++ipart){
+      printGenParticleInfo(ww_qqdaus[ipart], ipart);
+    }
+    for (unsigned ipart = 0; ipart<ww_lvdaus.size(); ++ipart){
+      printGenParticleInfo(ww_lvdaus[ipart], ipart);
+    }
+    for (unsigned ipart = 0; ipart<bb.size(); ++ipart){
+      printGenParticleInfo(bb[ipart], ipart);
+    }
+  }
+
+  // requires one W->qq and one W->lv
+  if (ww_qqdaus.size() != 2 || ww_lvdaus.size() != 2) return;
+
+  // match bb and W->qq daus with jet
+  std::vector<const reco::GenParticle*> q_matched, ww_daus_matched;
+
+  for (const auto &q : ww_qqdaus){
+    if (reco::deltaR(jet->p4(), q->p4()) < distR) q_matched.push_back(q);
+  }
+  for (const auto &q : bb){
+    if (reco::deltaR(jet->p4(), q->p4()) < distR) q_matched.push_back(q);
+  }
+
+  // requires two quarks matched to jet
+  if (q_matched.size() != 2) return;
+
+  // let e/mu/tau appears before neutrinos
+  {
+    auto pdgid = std::abs(ww_lvdaus.at(0)->pdgId());
+    if (pdgid == ParticleID::p_nu_e || pdgid == ParticleID::p_nu_mu || pdgid == ParticleID::p_nu_tau) {
+      std::swap(ww_lvdaus.at(0), ww_lvdaus.at(1));
+    }
+  }
+
+  // store particles
+  for (const auto &q : q_matched){
+    ww_daus_matched.push_back(q);
+  }
+  for (const auto &l : ww_lvdaus){
+    ww_daus_matched.push_back(l);
+  }
+  // caulate the vec sum of all matched particles to create a fake resonance particle
+  auto res = new reco::GenParticle(0, math::XYZTLorentzVector(), math::XYZPoint(), 999999, 0, false);
+  for (const auto &p : ww_daus_matched){
+    res->setP4(res->p4() + p->p4());
+  }
+  getResult().resParticles.push_back(res);
+
+  if (debug_) {
+    std::cout << "Matched WW particles: " << std::endl;
+    for (unsigned ipart = 0; ipart<ww_daus_matched.size(); ++ipart){
+      printGenParticleInfo(ww_daus_matched[ipart], ipart);
+    }
+  }
+
+  // assign labels
+  higgs_WW_label(jet, ww_daus_matched, distR);
+
 }
 
 void FatJetMatching::top_label(const pat::Jet* jet, const reco::GenParticle *parton, const reco::GenParticleCollection& genParticles, double distR)
