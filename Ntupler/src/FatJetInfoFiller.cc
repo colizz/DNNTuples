@@ -110,6 +110,9 @@ void FatJetInfoFiller::book() {
   data.add<float>("fj_genparts_phi", 0);
   data.add<float>("fj_genparts_mass", 0);
 
+  // special config for topww
+  data.add<bool>("fj_topww_hasb", false);
+
   // --- jet energy/mass regression ---
   data.add<float>("fj_genjet_pt", 0);
   data.add<float>("fj_genOverReco_pt", 1); // default to 1 if not gen-matched
@@ -321,6 +324,7 @@ bool FatJetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
     std::cout << "   gen resonance mass " << (resparts_size > 0 ? resparts[0]->mass() : 0) << std::endl;
     std::cout << "   gen particle mass  " << sumP4.mass() << std::endl;
   }
+  data.fill<bool>("fj_topww_hasb", std::abs(parts[1]->pdgId()) == 5);
 
   // ----------------------------------
 
