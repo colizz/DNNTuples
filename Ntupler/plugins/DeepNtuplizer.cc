@@ -128,6 +128,12 @@ void DeepNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     bool write_ = true;
 
     const auto& jet = jets->at(idx); // need to keep the JEC for puppi sdmass corr
+    // jet selection
+    auto msd = jet.userFloat("ak8PFJetsPuppiSoftDropMass");
+    if (!(msd > 115 && msd < 135 && jet.pt() > 450 && std::abs(jet.eta()) < 2.5)) {
+      continue;
+    }
+
     JetHelper jet_helper(&jet, candHandle);
     jet_helper.setGenjetWithNu((*genJetWithNuMatchHandle)[jets->refAt(idx)]);
     jet_helper.setGenjetWithNuSoftDrop((*genJetWithNuSoftDropMatchHandle)[jets->refAt(idx)]);

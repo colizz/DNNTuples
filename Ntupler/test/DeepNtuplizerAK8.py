@@ -21,9 +21,10 @@ options.outputFile = 'output.root'
 # options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/BulkGravitonToHHTo4Z_MX-600to6000_MH-15to250_JHUVariableZMass/20UL17MiniAODv2/part3/miniv2_15820048-548.root' ## HZZ 1
 # options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/BulkGravitonToHHTo4Z_MX-600to6000_MH-15to250_JHUVariableZMass/20UL17MiniAODv2/part3/miniv2_15820048-549.root' ## HZZ 2
 # options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/BulkGravitonToHHTo4Z_MX-600to6000_MH-15to250_JHUVariableZMass2DMesh/20UL17MiniAODv2/part2/miniv2_15822201-2585.root' ## HZZ 2dmesh
-options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/PairVectorLQ_LQToBTau_HT-600to6000_M-15to250/20UL17MiniAODv2/miniv2_16076647-1.root' ## customized btau
+# options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/PairVectorLQ_LQToBTau_HT-600to6000_M-15to250/20UL17MiniAODv2/miniv2_16076647-1.root' ## customized btau
 # options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/BulkGravToZZToZhadZhad_narrow_M-1000_TuneCP5_13TeV-madgraph-pythia/MINIAODSIM/106X_mc2017_realistic_v9-v2/110000/DABA0ABE-8F97-9747-9A7A-4E31435442E1.root' ## Zqq inference
 # options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/BulkGravToWWToWhadWhad_narrow_M-1000_TuneCP5_13TeV-madgraph-pythia/MINIAODSIM/106X_mc2017_realistic_v9-v2/260000/F1F668E3-CB4A-ED4E-9493-3485628D5059.root'  ## Wqq inference
+options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/GluGluHToBB_Pt-200ToInf_M-125_TuneCP5_MINLO_13TeV-powheg-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/50000/352A1D3C-77B8-1A42-A964-87E486EDBB7E.root' # AD ggHbb sample
 
 options.maxEvents = -1
 
@@ -143,14 +144,6 @@ jetR = 0.8
 doCustomTaggerInference = True if not options.isTrainSample else False
 
 bTagDiscriminators = [
-    'pfCombinedInclusiveSecondaryVertexV2BJetTags',
-    'pfBoostedDoubleSecondaryVertexAK8BJetTags',
-    # 'pfDeepDoubleBvLJetTags:probHbb',
-    # 'pfDeepDoubleCvLJetTags:probHcc',
-    # 'pfDeepDoubleCvBJetTags:probHcc',
-    # 'pfMassIndependentDeepDoubleBvLJetTags:probHbb',
-    # 'pfMassIndependentDeepDoubleCvLJetTags:probHcc',
-    # 'pfMassIndependentDeepDoubleCvBJetTags:probHcc',
 ]
 
 subjetBTagDiscriminators = ['None']
@@ -158,16 +151,14 @@ subjetBTagDiscriminators = ['None']
 # from dnntuple v9: infer the new tagger so as to store the hidden layer scores in a special branch jet_custom_discs
 from DeepNTuples.Ntupler.jetTools import updateJetCollection # use custom updataJetCollection
 from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
-btagDiscriminatorsCustomSaveAsCompact = _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
+from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbsHidNeurons
+btagDiscriminatorsCustomSaveAsCompact1 = _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
+btagDiscriminatorsCustomSaveAsCompact2 = _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbsHidNeurons
 btagDiscriminatorsCustomSaveAsSeparate = []
 
-if doCustomTaggerInference:
-    from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedDeepHWWV1_cff import _pfMassDecorrelatedDeepHWWV1JetTagsAll
-    from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV1_cff import _pfMassDecorrelatedInclParticleTransformerV1JetTagsAll
-    from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScores
-    btagDiscriminatorsCustomSaveAsSeparate += _pfMassDecorrelatedDeepHWWV1JetTagsAll + _pfMassDecorrelatedInclParticleTransformerV1JetTagsAll + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScores
-
 if useReclusteredJets:
+    raise NotImplementedError('Reclustering not implemented')
+
     JETCorrLevels = ['L2Relative', 'L3Absolute']
 
     from DeepNTuples.Ntupler.jetToolbox_cff import jetToolbox
@@ -192,7 +183,7 @@ else:
         jetSource=cms.InputTag('slimmedJetsAK8'),
         rParam=jetR,
         jetCorrections=('AK8PFPuppi', cms.vstring(['L2Relative', 'L3Absolute']), 'None'),
-        btagDiscriminators=pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsCompact + btagDiscriminatorsCustomSaveAsSeparate,
+        btagDiscriminators=pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsCompact1 + btagDiscriminatorsCustomSaveAsCompact2 + btagDiscriminatorsCustomSaveAsSeparate,
     )
     srcJets = cms.InputTag('selectedUpdatedPatJets')
 # ---------------------------------------------------------
@@ -270,7 +261,8 @@ process.load("DeepNTuples.Ntupler.DeepNtuplizer_cfi")
 process.deepntuplizer.jets = srcJets
 process.deepntuplizer.useReclusteredJets = useReclusteredJets
 process.deepntuplizer.bDiscriminators = bTagDiscriminators + pfDeepBoostedJetTagsAll + pfParticleNetJetTagsAll + pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsSeparate
-process.deepntuplizer.bDiscriminatorsCompactSave = btagDiscriminatorsCustomSaveAsCompact
+process.deepntuplizer.bDiscriminatorsCompactSave1 = btagDiscriminatorsCustomSaveAsCompact1
+process.deepntuplizer.bDiscriminatorsCompactSave2 = btagDiscriminatorsCustomSaveAsCompact2
 
 process.deepntuplizer.genJetsWithNuMatch = 'ak8GenJetsWithNuMatch'
 process.deepntuplizer.genJetsWithNuSoftDropMatch = 'ak8GenJetsWithNuSoftDropMatch'
@@ -292,6 +284,18 @@ process.deepntuplizer.isTrainSample = options.isTrainSample
 # special output configs
 process.deepntuplizer.addMET = options.addMET
 process.deepntuplizer.addLowLevel = options.addLowLevel
+
+# AD configs
+process.deepntuplizer.addHLT = True
+process.deepntuplizer.HLTList = cms.untracked.vstring(     
+    "HLT_AK8PFHT800_TrimMass50_v",
+    "HLT_AK8PFJet400_TrimMass30_v",
+    "HLT_AK8PFJet420_TrimMass30_v",
+    "HLT_AK8PFJet500_v",
+    "HLT_PFHT1050_v",
+    "HLT_PFJet500_v",
+)
+
 #==============================================================================================================================#
 process.p = cms.Path(process.deepntuplizer)
 process.p.associate(patTask)

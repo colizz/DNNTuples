@@ -51,6 +51,7 @@ private:
   const double min_jet_pt_;
   const double max_jet_eta_;
   const double min_pt_for_track_properties_;
+  const double mass_scale_target_;
   const bool use_puppiP4_;
   const bool include_neutrals_;
   const bool sort_by_sip2dsig_;
@@ -125,6 +126,7 @@ ParticleTransformerAK8TagInfoProducer::ParticleTransformerAK8TagInfoProducer(con
       min_jet_pt_(iConfig.getParameter<double>("min_jet_pt")),
       max_jet_eta_(iConfig.getParameter<double>("max_jet_eta")),
       min_pt_for_track_properties_(iConfig.getParameter<double>("min_pt_for_track_properties")),
+      mass_scale_target_(iConfig.getParameter<double>("mass_scale_target")),
       use_puppiP4_(iConfig.getParameter<bool>("use_puppiP4")),
       include_neutrals_(iConfig.getParameter<bool>("include_neutrals")),
       sort_by_sip2dsig_(iConfig.getParameter<bool>("sort_by_sip2dsig")),
@@ -163,6 +165,7 @@ void ParticleTransformerAK8TagInfoProducer::fillDescriptions(edm::ConfigurationD
   desc.add<double>("min_jet_pt", 150);
   desc.add<double>("max_jet_eta", 99);
   desc.add<double>("min_pt_for_track_properties", -1);
+  desc.add<double>("mass_scale_target", -1);
   desc.add<bool>("use_puppiP4", true);
   desc.add<bool>("include_neutrals", true);
   desc.add<bool>("sort_by_sip2dsig", false);
@@ -264,6 +267,9 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
   math::XYZVector jet_dir = jet.momentum().Unit();
   GlobalVector jet_ref_track_dir(jet.px(), jet.py(), jet.pz());
   const float etasign = jet.eta() > 0 ? 1 : -1;
+
+  // check mass scaling
+  const float k_scale = (mass_scale_target_ > 0) ? (mass_scale_target_ / patJet->userFloat("ak8PFJetsPuppiSoftDropMass")) : 1.;
 
   TrackInfoBuilder trkinfo(track_builder_);
 
@@ -440,10 +446,10 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
     }
 
     // basic kinematics
-    fts.fill("cpfcandlt_px", candP4.px());
-    fts.fill("cpfcandlt_py", candP4.py());
-    fts.fill("cpfcandlt_pz", candP4.pz());
-    fts.fill("cpfcandlt_energy", candP4.energy());
+    fts.fill("cpfcandlt_px", candP4.px() * k_scale);
+    fts.fill("cpfcandlt_py", candP4.py() * k_scale);
+    fts.fill("cpfcandlt_pz", candP4.pz() * k_scale);
+    fts.fill("cpfcandlt_energy", candP4.energy() * k_scale);
 
     fts.fill("cpfcandlt_puppiw", puppi_wgt_cache.at(cand.key()));
     fts.fill("cpfcandlt_phirel", reco::deltaPhi(candP4, jet));
@@ -455,11 +461,11 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
     fts.fill("cpfcandlt_ptrel", candP4.pt() / jet.pt());
     fts.fill("cpfcandlt_erel_log", std::log(candP4.energy() / jet.energy()));
     fts.fill("cpfcandlt_erel", candP4.energy() / jet.energy());
-    fts.fill("cpfcandlt_pt_log", std::log(candP4.pt()));
+    fts.fill("cpfcandlt_pt_log", std::log(candP4.pt() * k_scale));
 
     fts.fill("cpfcandlt_mask", 1);
-    fts.fill("cpfcandlt_pt_log_nopuppi", std::log(cand->pt()));
-    fts.fill("cpfcandlt_e_log_nopuppi", std::log(cand->energy()));
+    fts.fill("cpfcandlt_pt_log_nopuppi", std::log(cand->pt() * k_scale));
+    fts.fill("cpfcandlt_e_log_nopuppi", std::log(cand->energy() * k_scale));
 
     float drminpfcandsv = btagbtvdeep::mindrsvpfcand(*svs_, &(*cand), std::numeric_limits<float>::infinity());
     fts.fill("cpfcandlt_drminsv", drminpfcandsv);
@@ -579,10 +585,10 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
     }
 
     // basic kinematics
-    fts.fill("npfcand_px", candP4.px());
-    fts.fill("npfcand_py", candP4.py());
-    fts.fill("npfcand_pz", candP4.pz());
-    fts.fill("npfcand_energy", candP4.energy());
+    fts.fill("npfcand_px", candP4.px() * k_scale);
+    fts.fill("npfcand_py", candP4.py() * k_scale);
+    fts.fill("npfcand_pz", candP4.pz() * k_scale);
+    fts.fill("npfcand_energy", candP4.energy() * k_scale);
 
     fts.fill("npfcand_puppiw", puppi_wgt_cache.at(cand.key()));
     fts.fill("npfcand_phirel", reco::deltaPhi(candP4, jet));
@@ -594,11 +600,11 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
     fts.fill("npfcand_ptrel", candP4.pt() / jet.pt());
     fts.fill("npfcand_erel_log", std::log(candP4.energy() / jet.energy()));
     fts.fill("npfcand_erel", candP4.energy() / jet.energy());
-    fts.fill("npfcand_pt_log", std::log(candP4.pt()));
+    fts.fill("npfcand_pt_log", std::log(candP4.pt() * k_scale));
 
     fts.fill("npfcand_mask", 1);
-    fts.fill("npfcand_pt_log_nopuppi", std::log(cand->pt()));
-    fts.fill("npfcand_e_log_nopuppi", std::log(cand->energy()));
+    fts.fill("npfcand_pt_log_nopuppi", std::log(cand->pt() * k_scale));
+    fts.fill("npfcand_e_log_nopuppi", std::log(cand->energy() * k_scale));
   }
 }
 
@@ -623,27 +629,35 @@ void ParticleTransformerAK8TagInfoProducer::fillSVFeatures(DeepBoostedJetFeature
 
   const float etasign = jet.eta() > 0 ? 1 : -1;
 
+  // require the input to be a pat::Jet
+  const auto *patJet = dynamic_cast<const pat::Jet *>(&jet);
+  if (!patJet) {
+    throw edm::Exception(edm::errors::InvalidReference) << "Input is not a pat::Jet.";
+  }
+  // check mass scaling
+  const float k_scale = (mass_scale_target_ > 0) ? (mass_scale_target_ / patJet->userFloat("ak8PFJetsPuppiSoftDropMass")) : 1.;
+
   for (const auto *sv : jetSVs) {
     // basic kinematics
     fts.fill("sv_mask", 1);
 
-    fts.fill("sv_px", sv->px());
-    fts.fill("sv_py", sv->py());
-    fts.fill("sv_pz", sv->pz());
-    fts.fill("sv_energy", sv->energy());
+    fts.fill("sv_px", sv->px() * k_scale);
+    fts.fill("sv_py", sv->py() * k_scale);
+    fts.fill("sv_pz", sv->pz() * k_scale);
+    fts.fill("sv_energy", sv->energy() * k_scale);
 
     fts.fill("sv_phirel", reco::deltaPhi(*sv, jet));
     fts.fill("sv_etarel", etasign * (sv->eta() - jet.eta()));
     fts.fill("sv_deltaR", reco::deltaR(*sv, jet));
     fts.fill("sv_abseta", std::abs(sv->eta()));
-    fts.fill("sv_mass", sv->mass());
+    fts.fill("sv_mass", sv->mass() * k_scale);
 
     fts.fill("sv_ptrel_log", std::log(sv->pt() / jet.pt()));
     fts.fill("sv_ptrel", sv->pt() / jet.pt());
     fts.fill("sv_erel_log", std::log(sv->energy() / jet.energy()));
     fts.fill("sv_erel", sv->energy() / jet.energy());
-    fts.fill("sv_pt_log", std::log(sv->pt()));
-    fts.fill("sv_pt", sv->pt());
+    fts.fill("sv_pt_log", std::log(sv->pt() * k_scale));
+    fts.fill("sv_pt", sv->pt() * k_scale);
 
     // sv properties
     fts.fill("sv_ntracks", sv->numberOfDaughters());

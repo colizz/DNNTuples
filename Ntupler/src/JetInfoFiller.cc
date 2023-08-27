@@ -20,7 +20,9 @@ void JetInfoFiller::readConfig(const edm::ParameterSet& iConfig, edm::ConsumesCo
   isTTBarSample_ = iConfig.getUntrackedParameter<bool>("isTTBarSample", false);
   isTrainSample_ = iConfig.getUntrackedParameter<bool>("isTrainSample", false);
   btag_discriminators_ = iConfig.getParameter<std::vector<std::string>>("bDiscriminators");
-  bDiscriminatorsCompactSave_ = iConfig.getParameter<std::vector<std::string>>("bDiscriminatorsCompactSave");
+  bDiscriminatorsCompactSave1_ = iConfig.getParameter<std::vector<std::string>>("bDiscriminatorsCompactSave1");
+  bDiscriminatorsCompactSave2_ = iConfig.getParameter<std::vector<std::string>>("bDiscriminatorsCompactSave2");
+  bDiscriminatorsCompactSave3_ = iConfig.getParameter<std::vector<std::string>>("bDiscriminatorsCompactSave3");
 
   vtxToken_ = cc.consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
   puToken_ = cc.consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("puInfo"));
@@ -28,6 +30,12 @@ void JetInfoFiller::readConfig(const edm::ParameterSet& iConfig, edm::ConsumesCo
   genParticlesToken_ = cc.consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticles"));
   metToken_ = cc.consumes<std::vector<pat::MET>>(iConfig.getParameter<edm::InputTag>("METs"));
   addMET_ = iConfig.getUntrackedParameter<bool>("addMET", false);
+
+  triggerBits_ = cc.consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("HLTBits")),
+  triggerObjects_ = cc.consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("HLTObjects")),
+  triggerPrescales_ = cc.consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("HLTPrescales")),
+  triggerList_ = iConfig.getUntrackedParameter<std::vector<std::string>>("HLTList"),
+  addHLT_ = iConfig.getUntrackedParameter<bool>("addHLT", false);
 }
 
 void JetInfoFiller::readEvent(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -40,7 +48,29 @@ void JetInfoFiller::readEvent(const edm::Event& iEvent, const edm::EventSetup& i
   if (addMET_) {
     iEvent.getByToken(metToken_, mets);
   }
+  if (addHLT_) {
+    iEvent.getByToken(triggerBits_, triggerBits);
+    iEvent.getByToken(triggerObjects_, triggerObjects);
+    iEvent.getByToken(triggerPrescales_, triggerPrescales);
 
+    const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+    std::string triggersPassed = "";
+    for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
+      std::string triggerName = names.triggerName(i);
+      if (strstr(triggerName.c_str(), "HLT_AK8PFHT") || strstr(triggerName.c_str(), "HLT_AK8PFJet") || strstr(triggerName.c_str(), "HLT_CaloJet")
+          || strstr(triggerName.c_str(), "HLT_DiPFJetAve") || strstr(triggerName.c_str(), "HLT_PFHT") || strstr(triggerName.c_str(), "HLT_PFJet")
+          || strstr(triggerName.c_str(), "HLT_QuadPFJet")
+      ) {
+        if (triggerBits->accept(i)) {
+          triggersPassed += triggerName;
+        }
+      }
+    }
+    // std::cout << triggersPassed << std::endl;
+    for (unsigned int i = 0; i < triggerList_.size(); ++i) {
+      triggerPassedMap_[triggerList_.at(i)] = strstr(triggersPassed.c_str(), triggerList_.at(i).c_str());
+    }
+  }
 }
 
 bool JetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& jet_helper) {
@@ -75,6 +105,13 @@ bool JetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& je
     data.fill<float>("met_phi", mets->front().phi());
     data.fill<float>("met_sumEt", mets->front().sumEt());
     data.fill<float>("met_significance", mets->front().significance());
+  }
+
+  // HLT information
+  if (addHLT_) {
+    for (unsigned int i = 0; i < triggerList_.size(); ++i) {
+      data.fill<bool>(triggerList_.at(i).c_str(), triggerPassedMap_[triggerList_.at(i)]);
+    }
   }
 
   // truth labels
@@ -112,9 +149,19 @@ bool JetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& je
   }
 
   // special jet scores
-  if (!bDiscriminatorsCompactSave_.empty()) {
-    for (const auto& disc : bDiscriminatorsCompactSave_) {
+  if (!bDiscriminatorsCompactSave1_.empty()) {
+    for (const auto& disc : bDiscriminatorsCompactSave1_) {
       data.fillMulti<float>("jet_custom_discs", catchInfs(jet.bDiscriminator(disc), -99));
+    }
+  }
+  if (!bDiscriminatorsCompactSave2_.empty()) {
+    for (const auto& disc : bDiscriminatorsCompactSave2_) {
+      data.fillMulti<float>("jet_custom_discs_2", catchInfs(jet.bDiscriminator(disc), -99));
+    }
+  }
+  if (!bDiscriminatorsCompactSave3_.empty()) {
+    for (const auto& disc : bDiscriminatorsCompactSave3_) {
+      data.fillMulti<float>("jet_custom_discs_3", catchInfs(jet.bDiscriminator(disc), -99));
     }
   }
 
@@ -135,6 +182,13 @@ void JetInfoFiller::book() {
     data.add<float>("met_phi", 0);
     data.add<float>("met_sumEt", 0);
     data.add<float>("met_significance", 0);
+  }
+
+  // HLT information
+  if (addHLT_) {
+    for (unsigned int i = 0; i < triggerList_.size(); ++i) {
+      data.add<bool>(triggerList_.at(i).c_str(), false);
+    }
   }
 
   // truth labels
@@ -168,8 +222,14 @@ void JetInfoFiller::book() {
     }
   }
 
-  if (!bDiscriminatorsCompactSave_.empty()) {
+  if (!bDiscriminatorsCompactSave1_.empty()) {
     data.addMulti<float>("jet_custom_discs");
+  }
+  if (!bDiscriminatorsCompactSave2_.empty()) {
+    data.addMulti<float>("jet_custom_discs_2");
+  }
+  if (!bDiscriminatorsCompactSave3_.empty()) {
+    data.addMulti<float>("jet_custom_discs_3");
   }
 }
 

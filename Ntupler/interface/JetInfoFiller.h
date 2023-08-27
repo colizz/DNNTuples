@@ -12,6 +12,10 @@
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "PhysicsTools/SelectorUtils/interface/PFJetIDSelectionFunctor.h"
+#include "FWCore/Common/interface/TriggerNames.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 
 #include "DeepNTuples/NtupleCommons/interface/NtupleBase.h"
 #include "DeepNTuples/BTagHelpers/interface/FlavorDefinition.h"
@@ -47,7 +51,9 @@ private:
   bool isTTBarSample_ = false;
   bool isTrainSample_ = false;
   std::vector<std::string> btag_discriminators_;
-  std::vector<std::string> bDiscriminatorsCompactSave_;
+  std::vector<std::string> bDiscriminatorsCompactSave1_;
+  std::vector<std::string> bDiscriminatorsCompactSave2_;
+  std::vector<std::string> bDiscriminatorsCompactSave3_;
 
   edm::EDGetTokenT<reco::VertexCollection> vtxToken_;
   edm::EDGetTokenT<std::vector<PileupSummaryInfo>> puToken_;
@@ -68,6 +74,15 @@ private:
   edm::EDGetTokenT<std::vector<pat::MET>> metToken_;
   edm::Handle<std::vector<pat::MET>> mets;
 
+  bool addHLT_ = false;
+  edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
+  edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
+  edm::Handle<edm::TriggerResults> triggerBits;
+  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+  edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
+  std::vector<std::string> triggerList_;
+  std::map<std::string, bool> triggerPassedMap_;
 };
 
 } /* namespace deepntuples */

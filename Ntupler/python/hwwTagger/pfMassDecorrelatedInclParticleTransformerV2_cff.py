@@ -70,6 +70,36 @@ _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsMetaDiscrs = ['pfMass
 _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsAll = _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbs + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsMetaDiscrs
 
 # ===========================================================================================
+# For AK8 jets with hidden layer neurons, rescaled to M=125 GeV
+
+## special tag info producer
+pfMassDecorrelatedInclParticleTransformerV2M125TagInfos = pfParticleTransformerV2JetTagInfos.clone(
+    use_puppiP4 = False,
+     mass_scale_target = 125.,
+)
+
+pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTags = boostedJetONNXJetTagsProducer.clone(
+    src = 'pfMassDecorrelatedInclParticleTransformerV2M125TagInfos',
+    preprocess_json = 'DeepNTuples/Ntupler/data/InclParticleTransformer-MD/ak8/V02-HidLayer/preprocess_corr.json',
+    model_path = 'DeepNTuples/Ntupler/data/InclParticleTransformer-MD/ak8/V02-HidLayer/model_embed.onnx',
+    flav_names = pfMassDecorrelatedInclParticleTransformerV2JetTags.flav_names + ['hidNeuron%s' % str(idx).zfill(3) for idx in range(256)],
+    debugMode = False,
+)
+
+# declare all the discriminators
+# probs
+_pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbs = ['pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTags:' + flav_name
+                                 for flav_name in pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTags.flav_names]
+_pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbsRawScores = [disc for disc in _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbs if 'hidNeuron' not in disc]
+_pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbsHidNeurons = [disc for disc in _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbs if 'hidNeuron' in disc]
+
+# meta-taggers
+_pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsMetaDiscrs = ['pfMassDecorrelatedInclParticleTransformerV2M125HidLayerDiscriminatorsJetTags:' + disc.name.value()
+                                      for disc in pfMassDecorrelatedInclParticleTransformerV2DiscriminatorsJetTags.discriminators]
+
+_pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsAll = _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbs + _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsMetaDiscrs
+
+# ===========================================================================================
 # For AK15 jets:
 # obtain tag infos with radius 1.5, then inference with the model trained with radius 1.5 jets
 
