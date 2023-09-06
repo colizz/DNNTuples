@@ -75,7 +75,7 @@ _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsAll = _pfMassDecorrel
 ## special tag info producer
 pfMassDecorrelatedInclParticleTransformerV2M125TagInfos = pfParticleTransformerV2JetTagInfos.clone(
     use_puppiP4 = False,
-     mass_scale_target = 125.,
+    mass_scale_target = 120., # the actual peak position!
 )
 
 pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTags = boostedJetONNXJetTagsProducer.clone(
