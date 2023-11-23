@@ -70,34 +70,56 @@ _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsMetaDiscrs = ['pfMass
 _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsAll = _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbs + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsMetaDiscrs
 
 # ===========================================================================================
-# For AK8 jets with hidden layer neurons, rescaled to M=125 GeV
+# For AK8 jets with hidden layer neurons, rescaled to targetd mass
+
+mass_edges = [0 + k * 10 for k in range(100)]
 
 ## special tag info producer
-pfMassDecorrelatedInclParticleTransformerV2M125TagInfos = pfParticleTransformerV2JetTagInfos.clone(
+pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdxM1TagInfos = pfParticleTransformerV2JetTagInfos.clone(
     use_puppiP4 = False,
-    mass_scale_target = 120., # the actual peak position!
+    mass_edges = mass_edges,
+    mass_edge_index = -1,
+)
+pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx0TagInfos = pfParticleTransformerV2JetTagInfos.clone(
+    use_puppiP4 = False,
+    mass_edges = mass_edges,
+    mass_edge_index = 0,
+)
+pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx1TagInfos = pfParticleTransformerV2JetTagInfos.clone(
+    use_puppiP4 = False,
+    mass_edges = mass_edges,
+    mass_edge_index = 1,
+)
+pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx2TagInfos = pfParticleTransformerV2JetTagInfos.clone(
+    use_puppiP4 = False,
+    mass_edges = mass_edges,
+    mass_edge_index = 2,
 )
 
-pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTags = boostedJetONNXJetTagsProducer.clone(
-    src = 'pfMassDecorrelatedInclParticleTransformerV2M125TagInfos',
-    preprocess_json = 'DeepNTuples/Ntupler/data/InclParticleTransformer-MD/ak8/V02-HidLayer/preprocess_corr.json',
-    model_path = 'DeepNTuples/Ntupler/data/InclParticleTransformer-MD/ak8/V02-HidLayer/model_embed.onnx',
-    flav_names = pfMassDecorrelatedInclParticleTransformerV2JetTags.flav_names + ['hidNeuron%s' % str(idx).zfill(3) for idx in range(256)],
-    debugMode = False,
+pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdxM1HidLayerJetTags = pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags.clone(
+    src = 'pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdxM1TagInfos',
+)
+pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx0HidLayerJetTags = pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags.clone(
+    src = 'pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx0TagInfos',
+)
+pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx1HidLayerJetTags = pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags.clone(
+    src = 'pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx1TagInfos',
+)
+pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx2HidLayerJetTags = pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags.clone(
+    src = 'pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx2TagInfos',
 )
 
 # declare all the discriminators
 # probs
-_pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbs = ['pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTags:' + flav_name
-                                 for flav_name in pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTags.flav_names]
-_pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbsRawScores = [disc for disc in _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbs if 'hidNeuron' not in disc]
-_pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbsHidNeurons = [disc for disc in _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbs if 'hidNeuron' in disc]
+def getJetTagsProbs(name, requireHidNeurons=False):
+    jetTagsProbs = [name + 'JetTags:' + flav_name for flav_name in pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags.flav_names]
+    if requireHidNeurons:
+        jetTagsProbs = [disc for disc in jetTagsProbs if 'hidNeuron' in disc]
+    return jetTagsProbs
 
 # meta-taggers
-_pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsMetaDiscrs = ['pfMassDecorrelatedInclParticleTransformerV2M125HidLayerDiscriminatorsJetTags:' + disc.name.value()
-                                      for disc in pfMassDecorrelatedInclParticleTransformerV2DiscriminatorsJetTags.discriminators]
-
-_pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsAll = _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbs + _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsMetaDiscrs
+def getJetTagsMetaDiscrs(name):
+    return [name + 'DiscriminatorsJetTags:' + disc.name.value() for disc in pfMassDecorrelatedInclParticleTransformerV2DiscriminatorsJetTags.discriminators]
 
 # ===========================================================================================
 # For AK15 jets:

@@ -23,6 +23,8 @@ void JetInfoFiller::readConfig(const edm::ParameterSet& iConfig, edm::ConsumesCo
   bDiscriminatorsCompactSave1_ = iConfig.getParameter<std::vector<std::string>>("bDiscriminatorsCompactSave1");
   bDiscriminatorsCompactSave2_ = iConfig.getParameter<std::vector<std::string>>("bDiscriminatorsCompactSave2");
   bDiscriminatorsCompactSave3_ = iConfig.getParameter<std::vector<std::string>>("bDiscriminatorsCompactSave3");
+  bDiscriminatorsCompactSave4_ = iConfig.getParameter<std::vector<std::string>>("bDiscriminatorsCompactSave4");
+  bDiscriminatorsCompactSave5_ = iConfig.getParameter<std::vector<std::string>>("bDiscriminatorsCompactSave5");
 
   vtxToken_ = cc.consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
   puToken_ = cc.consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("puInfo"));
@@ -164,6 +166,16 @@ bool JetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& je
       data.fillMulti<float>("jet_custom_discs_3", catchInfs(jet.bDiscriminator(disc), -99));
     }
   }
+  if (!bDiscriminatorsCompactSave4_.empty()) {
+    for (const auto& disc : bDiscriminatorsCompactSave4_) {
+      data.fillMulti<float>("jet_custom_discs_4", catchInfs(jet.bDiscriminator(disc), -99));
+    }
+  }
+  if (!bDiscriminatorsCompactSave5_.empty()) {
+    for (const auto& disc : bDiscriminatorsCompactSave5_) {
+      data.fillMulti<float>("jet_custom_discs_5", catchInfs(jet.bDiscriminator(disc), -99));
+    }
+  }
 
   return true;
 }
@@ -230,6 +242,12 @@ void JetInfoFiller::book() {
   }
   if (!bDiscriminatorsCompactSave3_.empty()) {
     data.addMulti<float>("jet_custom_discs_3");
+  }
+  if (!bDiscriminatorsCompactSave4_.empty()) {
+    data.addMulti<float>("jet_custom_discs_4");
+  }
+  if (!bDiscriminatorsCompactSave5_.empty()) {
+    data.addMulti<float>("jet_custom_discs_5");
   }
 }
 

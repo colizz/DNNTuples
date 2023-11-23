@@ -54,6 +54,8 @@ private:
   std::vector<std::string> bDiscriminatorsCompactSave1_;
   std::vector<std::string> bDiscriminatorsCompactSave2_;
   std::vector<std::string> bDiscriminatorsCompactSave3_;
+  std::vector<std::string> bDiscriminatorsCompactSave4_;
+  std::vector<std::string> bDiscriminatorsCompactSave5_;
 
   edm::EDGetTokenT<reco::VertexCollection> vtxToken_;
   edm::EDGetTokenT<std::vector<PileupSummaryInfo>> puToken_;

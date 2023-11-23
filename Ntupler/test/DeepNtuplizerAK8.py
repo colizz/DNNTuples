@@ -143,7 +143,12 @@ jetR = 0.8
 # only inference the new taggers when not producing the training sample
 doCustomTaggerInference = True if not options.isTrainSample else False
 
+bTagInfos = [
+    'pfBoostedDoubleSVAK8TagInfos',
+]
+
 bTagDiscriminators = [
+    'pfBoostedDoubleSecondaryVertexAK8BJetTags',
 ]
 
 subjetBTagDiscriminators = ['None']
@@ -151,9 +156,12 @@ subjetBTagDiscriminators = ['None']
 # from dnntuple v9: infer the new tagger so as to store the hidden layer scores in a special branch jet_custom_discs
 from DeepNTuples.Ntupler.jetTools import updateJetCollection # use custom updataJetCollection
 from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
-from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbsHidNeurons
+from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import getJetTagsProbs
 btagDiscriminatorsCustomSaveAsCompact1 = _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
-btagDiscriminatorsCustomSaveAsCompact2 = _pfMassDecorrelatedInclParticleTransformerV2M125HidLayerJetTagsProbsHidNeurons
+btagDiscriminatorsCustomSaveAsCompact2 = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdxM1HidLayer', requireHidNeurons=True)
+btagDiscriminatorsCustomSaveAsCompact3 = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx0HidLayer', requireHidNeurons=True)
+btagDiscriminatorsCustomSaveAsCompact4 = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx1HidLayer', requireHidNeurons=True)
+btagDiscriminatorsCustomSaveAsCompact5 = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx2HidLayer', requireHidNeurons=True)
 btagDiscriminatorsCustomSaveAsSeparate = []
 
 if useReclusteredJets:
@@ -183,8 +191,11 @@ else:
         jetSource=cms.InputTag('slimmedJetsAK8'),
         rParam=jetR,
         jetCorrections=('AK8PFPuppi', cms.vstring(['L2Relative', 'L3Absolute']), 'None'),
-        btagDiscriminators=pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsCompact1 + btagDiscriminatorsCustomSaveAsCompact2 + btagDiscriminatorsCustomSaveAsSeparate,
+        btagDiscriminators=bTagDiscriminators + pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsCompact1 + btagDiscriminatorsCustomSaveAsCompact2 + btagDiscriminatorsCustomSaveAsCompact3 + btagDiscriminatorsCustomSaveAsCompact4 + btagDiscriminatorsCustomSaveAsCompact5 + btagDiscriminatorsCustomSaveAsSeparate,
+        btagInfos=bTagInfos,
     )
+    process.updatedPatJetsTransientCorrected.addTagInfos = cms.bool(True)
+
     srcJets = cms.InputTag('selectedUpdatedPatJets')
 # ---------------------------------------------------------
 from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask, addToProcessAndTask
@@ -263,6 +274,9 @@ process.deepntuplizer.useReclusteredJets = useReclusteredJets
 process.deepntuplizer.bDiscriminators = bTagDiscriminators + pfDeepBoostedJetTagsAll + pfParticleNetJetTagsAll + pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsSeparate
 process.deepntuplizer.bDiscriminatorsCompactSave1 = btagDiscriminatorsCustomSaveAsCompact1
 process.deepntuplizer.bDiscriminatorsCompactSave2 = btagDiscriminatorsCustomSaveAsCompact2
+process.deepntuplizer.bDiscriminatorsCompactSave3 = btagDiscriminatorsCustomSaveAsCompact3
+process.deepntuplizer.bDiscriminatorsCompactSave4 = btagDiscriminatorsCustomSaveAsCompact4
+process.deepntuplizer.bDiscriminatorsCompactSave5 = btagDiscriminatorsCustomSaveAsCompact5
 
 process.deepntuplizer.genJetsWithNuMatch = 'ak8GenJetsWithNuMatch'
 process.deepntuplizer.genJetsWithNuSoftDropMatch = 'ak8GenJetsWithNuSoftDropMatch'

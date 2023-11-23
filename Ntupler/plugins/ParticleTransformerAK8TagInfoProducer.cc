@@ -44,20 +44,23 @@ private:
   void produce(edm::Event &, const edm::EventSetup &) override;
   void endStream() override {}
 
-  void fillParticleFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet);
-  void fillSVFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet);
+  void fillParticleFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, const reco::Jet &jetScaled);
+  void fillSVFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, const reco::Jet &jetScaled);
+
+  float findClosestEdge(const std::vector<double>& edges, float target, int i);
 
   const double jet_radius_;
   const double min_jet_pt_;
   const double max_jet_eta_;
   const double min_pt_for_track_properties_;
-  const double mass_scale_target_;
   const bool use_puppiP4_;
   const bool include_neutrals_;
   const bool sort_by_sip2dsig_;
   const double min_puppi_wgt_;
   const bool flip_ip_sign_;
   const double max_sip3dsig_;
+  const std::vector<double> mass_edges_;
+  const int mass_edge_index_;
 
   edm::EDGetTokenT<edm::View<reco::Jet>> jet_token_;
   edm::EDGetTokenT<VertexCollection> vtx_token_;
@@ -126,13 +129,14 @@ ParticleTransformerAK8TagInfoProducer::ParticleTransformerAK8TagInfoProducer(con
       min_jet_pt_(iConfig.getParameter<double>("min_jet_pt")),
       max_jet_eta_(iConfig.getParameter<double>("max_jet_eta")),
       min_pt_for_track_properties_(iConfig.getParameter<double>("min_pt_for_track_properties")),
-      mass_scale_target_(iConfig.getParameter<double>("mass_scale_target")),
       use_puppiP4_(iConfig.getParameter<bool>("use_puppiP4")),
       include_neutrals_(iConfig.getParameter<bool>("include_neutrals")),
       sort_by_sip2dsig_(iConfig.getParameter<bool>("sort_by_sip2dsig")),
       min_puppi_wgt_(iConfig.getParameter<double>("min_puppi_wgt")),
       flip_ip_sign_(iConfig.getParameter<bool>("flip_ip_sign")),
       max_sip3dsig_(iConfig.getParameter<double>("sip3dSigMax")),
+      mass_edges_(iConfig.getParameter<std::vector<double> >("mass_edges")),
+      mass_edge_index_(iConfig.getParameter<int>("mass_edge_index")),
       jet_token_(consumes<edm::View<reco::Jet>>(iConfig.getParameter<edm::InputTag>("jets"))),
       vtx_token_(consumes<VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
       sv_token_(consumes<SVCollection>(iConfig.getParameter<edm::InputTag>("secondary_vertices"))),
@@ -158,6 +162,27 @@ ParticleTransformerAK8TagInfoProducer::ParticleTransformerAK8TagInfoProducer(con
 
 ParticleTransformerAK8TagInfoProducer::~ParticleTransformerAK8TagInfoProducer() {}
 
+
+float ParticleTransformerAK8TagInfoProducer::findClosestEdge(const std::vector<double>& edges, float target, int i) {
+
+  // Find the closest edge to the left of the target
+  auto lower = std::lower_bound(edges.begin(), edges.end(), target, std::less_equal<float>());
+  int closestIndex = std::distance(edges.begin(), lower) - 1;
+
+  // Adjust the index based on 'i'
+  int finalIndex = closestIndex + i;
+
+  // Check if finalIndex is within the range
+  if (finalIndex >= 0 && finalIndex < int(edges.size())) {
+    // std::cout << "target mass = " << target << "; i = " << i << "; returned edge = " << edges[finalIndex] << std::endl;
+    return edges[finalIndex];
+  } else {
+    // throw std::out_of_range("Index is out of range of the edge vector.");
+    return (finalIndex < 0) ? edges[0] : edges[edges.size() - 1];
+  }
+}
+
+
 void ParticleTransformerAK8TagInfoProducer::fillDescriptions(edm::ConfigurationDescriptions &descriptions) {
   // pfParticleTransformerAK8TagInfos
   edm::ParameterSetDescription desc;
@@ -165,13 +190,14 @@ void ParticleTransformerAK8TagInfoProducer::fillDescriptions(edm::ConfigurationD
   desc.add<double>("min_jet_pt", 150);
   desc.add<double>("max_jet_eta", 99);
   desc.add<double>("min_pt_for_track_properties", -1);
-  desc.add<double>("mass_scale_target", -1);
   desc.add<bool>("use_puppiP4", true);
   desc.add<bool>("include_neutrals", true);
   desc.add<bool>("sort_by_sip2dsig", false);
   desc.add<double>("min_puppi_wgt", 0.01);
   desc.add<bool>("flip_ip_sign", false);
   desc.add<double>("sip3dSigMax", -1);
+  desc.add<std::vector<double> >("mass_edges", {});
+  desc.add<int>("mass_edge_index", 0);
   desc.add<edm::InputTag>("vertices", edm::InputTag("offlinePrimaryVertices"));
   desc.add<edm::InputTag>("secondary_vertices", edm::InputTag("inclusiveCandidateSecondaryVertices"));
   desc.add<edm::InputTag>("pf_candidates", edm::InputTag("particleFlow"));
@@ -236,9 +262,25 @@ void ParticleTransformerAK8TagInfoProducer::produce(edm::Event &iEvent, const ed
     if (jet.numberOfDaughters() == 0)
       fill_vars = false;
 
+    // calculate the scaling factor for the jet
+    const auto *patJet = dynamic_cast<const pat::Jet *>(&jet);
+    if (!patJet) {
+      throw edm::Exception(edm::errors::InvalidReference) << "Input is not a pat::Jet.";
+    }
+    double msd = patJet->userFloat("ak8PFJetsPuppiSoftDropMass");
+    const float k_scale = (mass_edges_.empty() || msd <= 0) ? 1. : findClosestEdge(mass_edges_, msd, mass_edge_index_) / msd;
+
+    // scaling jet p4 by iterating its daughters
+    math::XYZTLorentzVector jetP4;
+    for (const auto &dau : jet.daughterPtrVector()) {
+      jetP4 += math::XYZTLorentzVector(dau->px() * k_scale, dau->py() * k_scale, dau->pz() * k_scale, std::sqrt(dau->massSqr() + std::pow(dau->p() * k_scale, 2)));
+    }
+    reco::Jet jetScaled(jet);
+    jetScaled.setP4(jetP4);
+
     if (fill_vars) {
-      fillParticleFeatures(features, jet);
-      fillSVFeatures(features, jet);
+      fillParticleFeatures(features, jet, k_scale, jetScaled);
+      fillSVFeatures(features, jet, k_scale, jetScaled);
 
       features.check_consistency(charged_particle_features_);
       features.check_consistency(neutral_particle_features_);
@@ -252,7 +294,7 @@ void ParticleTransformerAK8TagInfoProducer::produce(edm::Event &iEvent, const ed
   iEvent.put(std::move(output_tag_infos));
 }
 
-void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet) {
+void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, const reco::Jet &jetScaled) {
   // require the input to be a pat::Jet
   const auto *patJet = dynamic_cast<const pat::Jet *>(&jet);
   if (!patJet) {
@@ -267,9 +309,6 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
   math::XYZVector jet_dir = jet.momentum().Unit();
   GlobalVector jet_ref_track_dir(jet.px(), jet.py(), jet.pz());
   const float etasign = jet.eta() > 0 ? 1 : -1;
-
-  // check mass scaling
-  const float k_scale = (mass_scale_target_ > 0) ? (mass_scale_target_ / patJet->userFloat("ak8PFJetsPuppiSoftDropMass")) : 1.;
 
   TrackInfoBuilder trkinfo(track_builder_);
 
@@ -387,6 +426,7 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
     const float ip_sign = flip_ip_sign_ ? -1 : 1;
 
     auto candP4 = use_puppiP4_ ? puppi_wgt_cache.at(cand.key()) * cand->p4() : cand->p4();
+    math::XYZTLorentzVector candP4Scaled(candP4.px() * k_scale, candP4.py() * k_scale, candP4.pz() * k_scale, std::sqrt(candP4.M2() + candP4.P2() * k_scale * k_scale));
     if (packed_cand) {
       float hcal_fraction = 0.;
       if (packed_cand->pdgId() == 1 || packed_cand->pdgId() == 130) {
@@ -446,26 +486,26 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
     }
 
     // basic kinematics
-    fts.fill("cpfcandlt_px", candP4.px() * k_scale);
-    fts.fill("cpfcandlt_py", candP4.py() * k_scale);
-    fts.fill("cpfcandlt_pz", candP4.pz() * k_scale);
-    fts.fill("cpfcandlt_energy", candP4.energy() * k_scale);
+    fts.fill("cpfcandlt_px", candP4Scaled.px());
+    fts.fill("cpfcandlt_py", candP4Scaled.py());
+    fts.fill("cpfcandlt_pz", candP4Scaled.pz());
+    fts.fill("cpfcandlt_energy", candP4Scaled.energy());
 
     fts.fill("cpfcandlt_puppiw", puppi_wgt_cache.at(cand.key()));
-    fts.fill("cpfcandlt_phirel", reco::deltaPhi(candP4, jet));
-    fts.fill("cpfcandlt_etarel", etasign * (candP4.eta() - jet.eta()));
-    fts.fill("cpfcandlt_deltaR", reco::deltaR(candP4, jet));
-    fts.fill("cpfcandlt_abseta", std::abs(candP4.eta()));
+    fts.fill("cpfcandlt_phirel", reco::deltaPhi(candP4Scaled, jetScaled));
+    fts.fill("cpfcandlt_etarel", etasign * (candP4Scaled.eta() - jetScaled.eta()));
+    fts.fill("cpfcandlt_deltaR", reco::deltaR(candP4Scaled, jetScaled));
+    fts.fill("cpfcandlt_abseta", std::abs(candP4Scaled.eta()));
 
-    fts.fill("cpfcandlt_ptrel_log", std::log(candP4.pt() / jet.pt()));
-    fts.fill("cpfcandlt_ptrel", candP4.pt() / jet.pt());
-    fts.fill("cpfcandlt_erel_log", std::log(candP4.energy() / jet.energy()));
-    fts.fill("cpfcandlt_erel", candP4.energy() / jet.energy());
-    fts.fill("cpfcandlt_pt_log", std::log(candP4.pt() * k_scale));
+    fts.fill("cpfcandlt_ptrel_log", std::log(candP4Scaled.pt() / jetScaled.pt()));
+    fts.fill("cpfcandlt_ptrel", candP4Scaled.pt() / jetScaled.pt());
+    fts.fill("cpfcandlt_erel_log", std::log(candP4Scaled.energy() / jetScaled.energy()));
+    fts.fill("cpfcandlt_erel", candP4Scaled.energy() / jetScaled.energy());
+    fts.fill("cpfcandlt_pt_log", std::log(candP4Scaled.pt()));
 
     fts.fill("cpfcandlt_mask", 1);
     fts.fill("cpfcandlt_pt_log_nopuppi", std::log(cand->pt() * k_scale));
-    fts.fill("cpfcandlt_e_log_nopuppi", std::log(cand->energy() * k_scale));
+    fts.fill("cpfcandlt_e_log_nopuppi", std::log(std::sqrt(cand->massSqr() + std::pow(cand->p() * k_scale, 2))));
 
     float drminpfcandsv = btagbtvdeep::mindrsvpfcand(*svs_, &(*cand), std::numeric_limits<float>::infinity());
     fts.fill("cpfcandlt_drminsv", drminpfcandsv);
@@ -563,6 +603,7 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
       continue;
 
     auto candP4 = use_puppiP4_ ? puppi_wgt_cache.at(cand.key()) * cand->p4() : cand->p4();
+    math::XYZTLorentzVector candP4Scaled(candP4.px() * k_scale, candP4.py() * k_scale, candP4.pz() * k_scale, std::sqrt(candP4.M2() + candP4.P2() * k_scale * k_scale));
     if (packed_cand) {
       float hcal_fraction = 0.;
       if (packed_cand->pdgId() == 1 || packed_cand->pdgId() == 130) {
@@ -585,30 +626,30 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
     }
 
     // basic kinematics
-    fts.fill("npfcand_px", candP4.px() * k_scale);
-    fts.fill("npfcand_py", candP4.py() * k_scale);
-    fts.fill("npfcand_pz", candP4.pz() * k_scale);
-    fts.fill("npfcand_energy", candP4.energy() * k_scale);
+    fts.fill("npfcand_px", candP4Scaled.px());
+    fts.fill("npfcand_py", candP4Scaled.py());
+    fts.fill("npfcand_pz", candP4Scaled.pz());
+    fts.fill("npfcand_energy", candP4Scaled.energy());
 
     fts.fill("npfcand_puppiw", puppi_wgt_cache.at(cand.key()));
-    fts.fill("npfcand_phirel", reco::deltaPhi(candP4, jet));
-    fts.fill("npfcand_etarel", etasign * (candP4.eta() - jet.eta()));
-    fts.fill("npfcand_deltaR", reco::deltaR(candP4, jet));
-    fts.fill("npfcand_abseta", std::abs(candP4.eta()));
+    fts.fill("npfcand_phirel", reco::deltaPhi(candP4Scaled, jetScaled));
+    fts.fill("npfcand_etarel", etasign * (candP4Scaled.eta() - jetScaled.eta()));
+    fts.fill("npfcand_deltaR", reco::deltaR(candP4Scaled, jetScaled));
+    fts.fill("npfcand_abseta", std::abs(candP4Scaled.eta()));
 
-    fts.fill("npfcand_ptrel_log", std::log(candP4.pt() / jet.pt()));
-    fts.fill("npfcand_ptrel", candP4.pt() / jet.pt());
-    fts.fill("npfcand_erel_log", std::log(candP4.energy() / jet.energy()));
-    fts.fill("npfcand_erel", candP4.energy() / jet.energy());
-    fts.fill("npfcand_pt_log", std::log(candP4.pt() * k_scale));
+    fts.fill("npfcand_ptrel_log", std::log(candP4Scaled.pt() / jetScaled.pt()));
+    fts.fill("npfcand_ptrel", candP4Scaled.pt() / jetScaled.pt());
+    fts.fill("npfcand_erel_log", std::log(candP4Scaled.energy() / jetScaled.energy()));
+    fts.fill("npfcand_erel", candP4Scaled.energy() / jetScaled.energy());
+    fts.fill("npfcand_pt_log", std::log(candP4Scaled.pt()));
 
     fts.fill("npfcand_mask", 1);
     fts.fill("npfcand_pt_log_nopuppi", std::log(cand->pt() * k_scale));
-    fts.fill("npfcand_e_log_nopuppi", std::log(cand->energy() * k_scale));
+    fts.fill("npfcand_e_log_nopuppi", std::log(std::sqrt(cand->massSqr() + std::pow(cand->p() * k_scale, 2))));
   }
 }
 
-void ParticleTransformerAK8TagInfoProducer::fillSVFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet) {
+void ParticleTransformerAK8TagInfoProducer::fillSVFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, const reco::Jet &jetScaled) {
   std::vector<const reco::VertexCompositePtrCandidate *> jetSVs;
   for (const auto &sv : *svs_) {
     if (reco::deltaR2(sv, jet) < jet_radius_ * jet_radius_) {
@@ -629,35 +670,43 @@ void ParticleTransformerAK8TagInfoProducer::fillSVFeatures(DeepBoostedJetFeature
 
   const float etasign = jet.eta() > 0 ? 1 : -1;
 
-  // require the input to be a pat::Jet
-  const auto *patJet = dynamic_cast<const pat::Jet *>(&jet);
-  if (!patJet) {
-    throw edm::Exception(edm::errors::InvalidReference) << "Input is not a pat::Jet.";
-  }
-  // check mass scaling
-  const float k_scale = (mass_scale_target_ > 0) ? (mass_scale_target_ / patJet->userFloat("ak8PFJetsPuppiSoftDropMass")) : 1.;
-
   for (const auto *sv : jetSVs) {
+
+    /*
+    // scaling SV p4 by iterating each daughter p4
+    math::XYZTLorentzVector svP4;
+    for (unsigned int i = 0; i < sv->numberOfDaughters(); i++) {
+      const auto *dau = sv->daughter(i);
+      svP4 += math::XYZTLorentzVector(dau->px() * k_scale, dau->py() * k_scale, dau->pz() * k_scale, std::sqrt(dau->massSqr() + std::pow(dau->p() * k_scale, 2)));
+    }
+    auto svScaled = new reco::VertexCompositePtrCandidate(*sv);
+    svScaled->setP4(svP4);
+    */
+
+    // scaling SV p4 by maintaining its mass
+    auto svScaled = new reco::VertexCompositePtrCandidate(*sv);
+    svScaled->setP4(math::XYZTLorentzVector(sv->px() * k_scale, sv->py() * k_scale, sv->pz() * k_scale, std::sqrt(sv->massSqr() + std::pow(sv->p() * k_scale, 2))));
+
     // basic kinematics
     fts.fill("sv_mask", 1);
 
-    fts.fill("sv_px", sv->px() * k_scale);
-    fts.fill("sv_py", sv->py() * k_scale);
-    fts.fill("sv_pz", sv->pz() * k_scale);
-    fts.fill("sv_energy", sv->energy() * k_scale);
+    fts.fill("sv_px", svScaled->px());
+    fts.fill("sv_py", svScaled->py());
+    fts.fill("sv_pz", svScaled->pz());
+    fts.fill("sv_energy", svScaled->energy());
 
-    fts.fill("sv_phirel", reco::deltaPhi(*sv, jet));
-    fts.fill("sv_etarel", etasign * (sv->eta() - jet.eta()));
-    fts.fill("sv_deltaR", reco::deltaR(*sv, jet));
-    fts.fill("sv_abseta", std::abs(sv->eta()));
-    fts.fill("sv_mass", sv->mass() * k_scale);
+    fts.fill("sv_phirel", reco::deltaPhi(*svScaled, jetScaled));
+    fts.fill("sv_etarel", etasign * (svScaled->eta() - jetScaled.eta()));
+    fts.fill("sv_deltaR", reco::deltaR(*svScaled, jetScaled));
+    fts.fill("sv_abseta", std::abs(svScaled->eta()));
+    fts.fill("sv_mass", svScaled->mass());
 
-    fts.fill("sv_ptrel_log", std::log(sv->pt() / jet.pt()));
-    fts.fill("sv_ptrel", sv->pt() / jet.pt());
-    fts.fill("sv_erel_log", std::log(sv->energy() / jet.energy()));
-    fts.fill("sv_erel", sv->energy() / jet.energy());
-    fts.fill("sv_pt_log", std::log(sv->pt() * k_scale));
-    fts.fill("sv_pt", sv->pt() * k_scale);
+    fts.fill("sv_ptrel_log", std::log(svScaled->pt() / jetScaled.pt()));
+    fts.fill("sv_ptrel", svScaled->pt() / jetScaled.pt());
+    fts.fill("sv_erel_log", std::log(svScaled->energy() / jetScaled.energy()));
+    fts.fill("sv_erel", svScaled->energy() / jetScaled.energy());
+    fts.fill("sv_pt_log", std::log(svScaled->pt()));
+    fts.fill("sv_pt", svScaled->pt());
 
     // sv properties
     fts.fill("sv_ntracks", sv->numberOfDaughters());
