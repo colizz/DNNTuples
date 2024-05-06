@@ -61,6 +61,7 @@ private:
   const double max_sip3dsig_;
   const std::vector<double> mass_edges_;
   const int mass_edge_index_;
+  const bool remove_lead_lepton_;
 
   edm::EDGetTokenT<edm::View<reco::Jet>> jet_token_;
   edm::EDGetTokenT<VertexCollection> vtx_token_;
@@ -137,6 +138,7 @@ ParticleTransformerAK8TagInfoProducer::ParticleTransformerAK8TagInfoProducer(con
       max_sip3dsig_(iConfig.getParameter<double>("sip3dSigMax")),
       mass_edges_(iConfig.getParameter<std::vector<double> >("mass_edges")),
       mass_edge_index_(iConfig.getParameter<int>("mass_edge_index")),
+      remove_lead_lepton_(iConfig.getParameter<bool>("remove_lead_lepton")),
       jet_token_(consumes<edm::View<reco::Jet>>(iConfig.getParameter<edm::InputTag>("jets"))),
       vtx_token_(consumes<VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
       sv_token_(consumes<SVCollection>(iConfig.getParameter<edm::InputTag>("secondary_vertices"))),
@@ -198,6 +200,7 @@ void ParticleTransformerAK8TagInfoProducer::fillDescriptions(edm::ConfigurationD
   desc.add<double>("sip3dSigMax", -1);
   desc.add<std::vector<double> >("mass_edges", {});
   desc.add<int>("mass_edge_index", 0);
+  desc.add<bool>("remove_lead_lepton", false);
   desc.add<edm::InputTag>("vertices", edm::InputTag("offlinePrimaryVertices"));
   desc.add<edm::InputTag>("secondary_vertices", edm::InputTag("inclusiveCandidateSecondaryVertices"));
   desc.add<edm::InputTag>("pf_candidates", edm::InputTag("particleFlow"));
@@ -252,6 +255,11 @@ void ParticleTransformerAK8TagInfoProducer::produce(edm::Event &iEvent, const ed
     }
     for (const auto &name : sv_features_) {
       features.add(name);
+    }
+    if (remove_lead_lepton_) {
+      for (const auto &name : {"removed_lep_pt", "removed_lep_eta", "removed_lep_phi", "removed_lep_pid"}) {
+        features.add(name);
+      }
     }
 
     // fill values only if above pt threshold and has daughters, otherwise left
@@ -402,6 +410,25 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
       // sort by original pt (not Puppi-weighted)
       std::sort(cpfPtrs.begin(), cpfPtrs.end(), [](const auto &a, const auto &b) { return a->pt() > b->pt(); });
       std::sort(npfPtrs.begin(), npfPtrs.end(), [](const auto &a, const auto &b) { return a->pt() > b->pt(); });
+    }
+  }
+
+  // remove leptons
+  if (remove_lead_lepton_) {
+    if (sort_by_sip2dsig_) {
+      throw edm::Exception(edm::errors::InvalidReference) << "Cannot remove leptons when sorting by sip2dsig";
+    }
+    // check cpfPtrs from the begining, remove the leading lepton (pid = +-11 or +-13)
+    for (auto it = cpfPtrs.begin(); it != cpfPtrs.end(); ++it) {
+      if (std::abs((*it)->pdgId()) == 11 || std::abs((*it)->pdgId()) == 13) {
+        cpfPtrs.erase(it);
+        // fill the removed lepton features
+        fts.fill("removed_lep_pt", (*it)->pt());
+        fts.fill("removed_lep_eta", (*it)->eta());
+        fts.fill("removed_lep_phi", (*it)->phi());
+        fts.fill("removed_lep_pid", (*it)->pdgId());
+        break;
+      }
     }
   }
 

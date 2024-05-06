@@ -255,6 +255,18 @@ bool FatJetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
   // veto unmatched jets in signal samples for training
   if (isTrainSample_ && !isQCDSample_ && fjlabel.rfind("QCD_", 0) == 0)
     return false;
+  // customization for remove-lepton study: require the label must be lvqq
+  if (isTrainSample_ && !isQCDSample_) {
+    bool found = false;
+    std::vector<std::string> labelHWWLeps = {"csev", "qqev", "csmv", "qqmv", "cstauev", "qqtauev", "cstaumv", "qqtaumv", "cstauhv", "qqtauhv"};
+    for (auto& l: labelHWWLeps) {
+      if (fjlabel.rfind("H_WW_" + l, 0) == 0) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) return false;
+  }
 
   data.fill<int>("fj_isTop", fjlabel.rfind("Top_", 0) == 0);
   data.fill<int>("fj_isW",   fjlabel.rfind("W_", 0) == 0);
@@ -469,6 +481,7 @@ bool FatJetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
   data.fill<float>("fj_jetNTracks", vars.get(reco::btau::jetNTracks));
   data.fill<float>("fj_nSV", vars.get(reco::btau::jetNSecondaryVertices));
 
+  // std::cout << "filling fatjet label: " << fjlabel << std::endl;
   return true;
 }
 

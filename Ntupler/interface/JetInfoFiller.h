@@ -85,6 +85,11 @@ private:
   edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
   std::vector<std::string> triggerList_;
   std::map<std::string, bool> triggerPassedMap_;
+
+  edm::EDGetTokenT<edm::View<pat::Electron>> electronToken_;
+  edm::EDGetTokenT<edm::View<pat::Muon>> muonToken_;
+  edm::Handle<edm::View<pat::Electron>> electrons;
+  edm::Handle<edm::View<pat::Muon>> muons;
 };
 
 } /* namespace deepntuples */

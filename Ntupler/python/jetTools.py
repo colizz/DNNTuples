@@ -706,7 +706,7 @@ def setupBTagging(process, jetSource, pfCandidates, explicitJTA, pvSource, svSou
                                     process, task)
 
             ##!! custom DeepHWW
-            if btagInfo in ['pfMassDecorrelatedDeepHWWV1TagInfos', 'pfMassDecorrelatedInclParticleTransformerV1TagInfos', 'pfMassDecorrelatedInclParticleTransformerV2TagInfos', 'pfMassDecorrelatedInclParticleTransformerAK15V2TagInfos'] or 'pfMassDecorrelatedInclParticleTransformerV2JetP4Scaling' in btagInfo:
+            if btagInfo in ['pfMassDecorrelatedDeepHWWV1TagInfos', 'pfMassDecorrelatedInclParticleTransformerV1TagInfos', 'pfMassDecorrelatedInclParticleTransformerV2TagInfos', 'pfMassDecorrelatedInclParticleTransformerAK15V2TagInfos'] or 'pfMassDecorrelatedInclParticleTransformerV2RemoveLeadLepton' in btagInfo:
                 if pfCandidates.value() == 'packedPFCandidates':
                     # case 1: running over jets whose daughters are PackedCandidates (only via updateJetCollection for now)
                     puppi_value_map = ""

@@ -75,46 +75,23 @@ _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsAll = _pfMassDecorrel
 mass_edges = [0 + k * 10 for k in range(100)]
 
 ## special tag info producer
-pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdxM1TagInfos = pfParticleTransformerV2JetTagInfos.clone(
+pfMassDecorrelatedInclParticleTransformerV2RemoveLeadLeptonTagInfos = pfParticleTransformerV2JetTagInfos.clone(
     use_puppiP4 = False,
-    mass_edges = mass_edges,
-    mass_edge_index = -1,
-)
-pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx0TagInfos = pfParticleTransformerV2JetTagInfos.clone(
-    use_puppiP4 = False,
-    mass_edges = mass_edges,
-    mass_edge_index = 0,
-)
-pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx1TagInfos = pfParticleTransformerV2JetTagInfos.clone(
-    use_puppiP4 = False,
-    mass_edges = mass_edges,
-    mass_edge_index = 1,
-)
-pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx2TagInfos = pfParticleTransformerV2JetTagInfos.clone(
-    use_puppiP4 = False,
-    mass_edges = mass_edges,
-    mass_edge_index = 2,
+    remove_lead_lepton = True,
 )
 
-pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdxM1HidLayerJetTags = pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags.clone(
-    src = 'pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdxM1TagInfos',
-)
-pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx0HidLayerJetTags = pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags.clone(
-    src = 'pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx0TagInfos',
-)
-pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx1HidLayerJetTags = pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags.clone(
-    src = 'pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx1TagInfos',
-)
-pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx2HidLayerJetTags = pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags.clone(
-    src = 'pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx2TagInfos',
+pfMassDecorrelatedInclParticleTransformerV2RemoveLeadLeptonHidLayerJetTags = pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags.clone(
+    src = 'pfMassDecorrelatedInclParticleTransformerV2RemoveLeadLeptonTagInfos',
 )
 
 # declare all the discriminators
 # probs
-def getJetTagsProbs(name, requireHidNeurons=False):
+def getJetTagsProbs(name, includeProbs=True, includeHidNeurons=True):
     jetTagsProbs = [name + 'JetTags:' + flav_name for flav_name in pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags.flav_names]
-    if requireHidNeurons:
+    if not includeProbs:
         jetTagsProbs = [disc for disc in jetTagsProbs if 'hidNeuron' in disc]
+    if not includeHidNeurons:
+        jetTagsProbs = [disc for disc in jetTagsProbs if 'hidNeuron' not in disc]
     return jetTagsProbs
 
 # meta-taggers

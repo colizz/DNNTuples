@@ -38,6 +38,9 @@ void JetInfoFiller::readConfig(const edm::ParameterSet& iConfig, edm::ConsumesCo
   triggerPrescales_ = cc.consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("HLTPrescales")),
   triggerList_ = iConfig.getUntrackedParameter<std::vector<std::string>>("HLTList"),
   addHLT_ = iConfig.getUntrackedParameter<bool>("addHLT", false);
+
+  electronToken_ = cc.consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("electrons"));
+  muonToken_ = cc.consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("muons"));
 }
 
 void JetInfoFiller::readEvent(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -73,6 +76,8 @@ void JetInfoFiller::readEvent(const edm::Event& iEvent, const edm::EventSetup& i
       triggerPassedMap_[triggerList_.at(i)] = strstr(triggersPassed.c_str(), triggerList_.at(i).c_str());
     }
   }
+  iEvent.getByToken(electronToken_, electrons);
+  iEvent.getByToken(muonToken_, muons);
 }
 
 bool JetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& jet_helper) {
@@ -177,6 +182,27 @@ bool JetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& je
     }
   }
 
+  // store nearby leptons (dr < jetR_)
+  for (const auto& lep : *electrons) {
+    if (reco::deltaR(lep, jet) < jetR_) {
+      data.fillMulti<float>("contained_lep_pt", lep.pt());
+      data.fillMulti<float>("contained_lep_eta", lep.eta());
+      data.fillMulti<float>("contained_lep_phi", lep.phi());
+      data.fillMulti<float>("contained_lep_pid", lep.pdgId());
+      data.fillMulti<float>("contained_lep_deltaR", reco::deltaR(lep, jet));
+
+    }
+  }
+  for (const auto& lep : *muons) {
+    if (reco::deltaR(lep, jet) < jetR_) {
+      data.fillMulti<float>("contained_lep_pt", lep.pt());
+      data.fillMulti<float>("contained_lep_eta", lep.eta());
+      data.fillMulti<float>("contained_lep_phi", lep.phi());
+      data.fillMulti<float>("contained_lep_pid", lep.pdgId());
+      data.fillMulti<float>("contained_lep_deltaR", reco::deltaR(lep, jet));
+    }
+  }
+
   return true;
 }
 
@@ -249,6 +275,13 @@ void JetInfoFiller::book() {
   if (!bDiscriminatorsCompactSave5_.empty()) {
     data.addMulti<float>("jet_custom_discs_5");
   }
+
+  // store nearby leptons
+  data.addMulti<float>("contained_lep_pt");
+  data.addMulti<float>("contained_lep_eta");
+  data.addMulti<float>("contained_lep_phi");
+  data.addMulti<float>("contained_lep_pid");
+  data.addMulti<float>("contained_lep_deltaR");
 }
 
 

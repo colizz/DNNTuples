@@ -24,7 +24,9 @@ options.outputFile = 'output.root'
 # options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/PairVectorLQ_LQToBTau_HT-600to6000_M-15to250/20UL17MiniAODv2/miniv2_16076647-1.root' ## customized btau
 # options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/BulkGravToZZToZhadZhad_narrow_M-1000_TuneCP5_13TeV-madgraph-pythia/MINIAODSIM/106X_mc2017_realistic_v9-v2/110000/DABA0ABE-8F97-9747-9A7A-4E31435442E1.root' ## Zqq inference
 # options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/BulkGravToWWToWhadWhad_narrow_M-1000_TuneCP5_13TeV-madgraph-pythia/MINIAODSIM/106X_mc2017_realistic_v9-v2/260000/F1F668E3-CB4A-ED4E-9493-3485628D5059.root'  ## Wqq inference
-options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/GluGluHToBB_Pt-200ToInf_M-125_TuneCP5_MINLO_13TeV-powheg-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/50000/352A1D3C-77B8-1A42-A964-87E486EDBB7E.root' # AD ggHbb sample
+# options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/GluGluHToBB_Pt-200ToInf_M-125_TuneCP5_MINLO_13TeV-powheg-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/50000/352A1D3C-77B8-1A42-A964-87E486EDBB7E.root' # AD ggHbb sample
+options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/GluGluHToWW_Pt-200ToInf_M-125_TuneCP5_MINLO_13TeV-powheg-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/2820000/269F4A3F-046C-594E-9BC4-8C9F04E62B51.root' # SM HWW events
+# options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/40000/8F5761B0-64AF-A240-81DD-67D006E36FCD.root' # SM QCD events
 
 options.maxEvents = -1
 
@@ -157,11 +159,8 @@ subjetBTagDiscriminators = ['None']
 from DeepNTuples.Ntupler.jetTools import updateJetCollection # use custom updataJetCollection
 from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
 from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import getJetTagsProbs
-btagDiscriminatorsCustomSaveAsCompact1 = _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
-btagDiscriminatorsCustomSaveAsCompact2 = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdxM1HidLayer', requireHidNeurons=True)
-btagDiscriminatorsCustomSaveAsCompact3 = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx0HidLayer', requireHidNeurons=True)
-btagDiscriminatorsCustomSaveAsCompact4 = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx1HidLayer', requireHidNeurons=True)
-btagDiscriminatorsCustomSaveAsCompact5 = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx2HidLayer', requireHidNeurons=True)
+btagDiscriminatorsCustomSaveAsCompact1 = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2HidLayer', includeHidNeurons=False)
+btagDiscriminatorsCustomSaveAsCompact2 = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2RemoveLeadLeptonHidLayer', includeHidNeurons=False)
 btagDiscriminatorsCustomSaveAsSeparate = []
 
 if useReclusteredJets:
@@ -191,7 +190,7 @@ else:
         jetSource=cms.InputTag('slimmedJetsAK8'),
         rParam=jetR,
         jetCorrections=('AK8PFPuppi', cms.vstring(['L2Relative', 'L3Absolute']), 'None'),
-        btagDiscriminators=bTagDiscriminators + pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsCompact1 + btagDiscriminatorsCustomSaveAsCompact2 + btagDiscriminatorsCustomSaveAsCompact3 + btagDiscriminatorsCustomSaveAsCompact4 + btagDiscriminatorsCustomSaveAsCompact5 + btagDiscriminatorsCustomSaveAsSeparate,
+        btagDiscriminators=bTagDiscriminators + pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsCompact1 + btagDiscriminatorsCustomSaveAsCompact2 + btagDiscriminatorsCustomSaveAsSeparate,
         btagInfos=bTagInfos,
     )
     process.updatedPatJetsTransientCorrected.addTagInfos = cms.bool(True)
@@ -274,9 +273,6 @@ process.deepntuplizer.useReclusteredJets = useReclusteredJets
 process.deepntuplizer.bDiscriminators = bTagDiscriminators + pfDeepBoostedJetTagsAll + pfParticleNetJetTagsAll + pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsSeparate
 process.deepntuplizer.bDiscriminatorsCompactSave1 = btagDiscriminatorsCustomSaveAsCompact1
 process.deepntuplizer.bDiscriminatorsCompactSave2 = btagDiscriminatorsCustomSaveAsCompact2
-process.deepntuplizer.bDiscriminatorsCompactSave3 = btagDiscriminatorsCustomSaveAsCompact3
-process.deepntuplizer.bDiscriminatorsCompactSave4 = btagDiscriminatorsCustomSaveAsCompact4
-process.deepntuplizer.bDiscriminatorsCompactSave5 = btagDiscriminatorsCustomSaveAsCompact5
 
 process.deepntuplizer.genJetsWithNuMatch = 'ak8GenJetsWithNuMatch'
 process.deepntuplizer.genJetsWithNuSoftDropMatch = 'ak8GenJetsWithNuSoftDropMatch'
@@ -300,15 +296,15 @@ process.deepntuplizer.addMET = options.addMET
 process.deepntuplizer.addLowLevel = options.addLowLevel
 
 # AD configs
-process.deepntuplizer.addHLT = True
-process.deepntuplizer.HLTList = cms.untracked.vstring(     
-    "HLT_AK8PFHT800_TrimMass50_v",
-    "HLT_AK8PFJet400_TrimMass30_v",
-    "HLT_AK8PFJet420_TrimMass30_v",
-    "HLT_AK8PFJet500_v",
-    "HLT_PFHT1050_v",
-    "HLT_PFJet500_v",
-)
+process.deepntuplizer.addHLT = False
+# process.deepntuplizer.HLTList = cms.untracked.vstring(     
+#     "HLT_AK8PFHT800_TrimMass50_v",
+#     "HLT_AK8PFJet400_TrimMass30_v",
+#     "HLT_AK8PFJet420_TrimMass30_v",
+#     "HLT_AK8PFJet500_v",
+#     "HLT_PFHT1050_v",
+#     "HLT_PFJet500_v",
+# )
 
 #==============================================================================================================================#
 process.p = cms.Path(process.deepntuplizer)

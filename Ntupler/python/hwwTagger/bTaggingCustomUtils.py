@@ -12,7 +12,7 @@ def updateSupportedBtagDiscr(supportedBtagInfos, supportedBtagDiscr, supportedMe
     supportedBtagInfos.extend(["pfMassDecorrelatedDeepHWWV1TagInfos"])
     supportedBtagInfos.extend(["pfMassDecorrelatedInclParticleTransformerV1TagInfos"])
     supportedBtagInfos.extend(["pfMassDecorrelatedInclParticleTransformerV2TagInfos"])
-    supportedBtagInfos.extend(["pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingTagInfos"])
+    supportedBtagInfos.extend(["pfMassDecorrelatedInclParticleTransformerV2RemoveLeadLeptonTagInfos"])
     supportedBtagInfos.extend(["pfMassDecorrelatedInclParticleTransformerAK15V2TagInfos"])
     for disc in _pfMassDecorrelatedDeepHWWV1JetTagsProbs + _pfMassDecorrelatedDeepHWWV1JetTagsMetaDiscrs:
         supportedBtagDiscr[disc] = [["pfMassDecorrelatedDeepHWWV1TagInfos"]]
@@ -24,9 +24,9 @@ def updateSupportedBtagDiscr(supportedBtagInfos, supportedBtagDiscr, supportedMe
         supportedBtagDiscr[disc] = [["pfMassDecorrelatedInclParticleTransformerAK15V2TagInfos"]]
     for disc in _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbs + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsMetaDiscrs:
         supportedBtagDiscr[disc] = [["pfMassDecorrelatedInclParticleTransformerV2TagInfos"]]
-    for _idx in ['M1', '0', '1', '2']:
-        for disc in getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx%sHidLayer' % _idx) + getJetTagsMetaDiscrs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx%sHidLayer' % _idx):
-            supportedBtagDiscr[disc] = [["pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx%sTagInfos" % _idx]]
+    for n in ['RemoveLeadLepton']:
+        for disc in getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2%sHidLayer' % n) + getJetTagsMetaDiscrs('pfMassDecorrelatedInclParticleTransformerV2%sHidLayer' % n):
+            supportedBtagDiscr[disc] = [["pfMassDecorrelatedInclParticleTransformerV2%sTagInfos" % n]]
     # update supportedMetaDiscr
     for disc in _pfMassDecorrelatedDeepHWWV1JetTagsMetaDiscrs:
         supportedMetaDiscr[disc] = _pfMassDecorrelatedDeepHWWV1JetTagsProbs
@@ -38,9 +38,9 @@ def updateSupportedBtagDiscr(supportedBtagInfos, supportedBtagDiscr, supportedMe
         supportedMetaDiscr[disc] = _pfMassDecorrelatedInclParticleTransformerAK15V2JetTagsProbs
     for disc in _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsMetaDiscrs:
         supportedMetaDiscr[disc] = _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbs
-    for _idx in ['M1', '0', '1', '2']:
-        for disc in getJetTagsMetaDiscrs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx%sHidLayer' % _idx):
-            supportedMetaDiscr[disc] = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2JetP4ScalingIdx%sHidLayer' % _idx)
+    for n in ['RemoveLeadLepton']:
+        for disc in getJetTagsMetaDiscrs('pfMassDecorrelatedInclParticleTransformerV2%sHidLayer' % n):
+            supportedMetaDiscr[disc] = getJetTagsProbs('pfMassDecorrelatedInclParticleTransformerV2%sHidLayer' % n)
 
     return supportedBtagInfos, supportedBtagDiscr, supportedMetaDiscr
 
