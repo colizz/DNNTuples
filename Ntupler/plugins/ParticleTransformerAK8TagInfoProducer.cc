@@ -44,8 +44,8 @@ private:
   void produce(edm::Event &, const edm::EventSetup &) override;
   void endStream() override {}
 
-  void fillParticleFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, const reco::Jet &jetScaled);
-  void fillSVFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, const reco::Jet &jetScaled);
+  void fillParticleFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, reco::Jet &jetScaled);
+  void fillSVFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, reco::Jet &jetScaled);
 
   float findClosestEdge(const std::vector<double>& edges, float target, int i);
 
@@ -302,7 +302,7 @@ void ParticleTransformerAK8TagInfoProducer::produce(edm::Event &iEvent, const ed
   iEvent.put(std::move(output_tag_infos));
 }
 
-void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, const reco::Jet &jetScaled) {
+void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, reco::Jet &jetScaled) {
   // require the input to be a pat::Jet
   const auto *patJet = dynamic_cast<const pat::Jet *>(&jet);
   if (!patJet) {
@@ -419,16 +419,24 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
       throw edm::Exception(edm::errors::InvalidReference) << "Cannot remove leptons when sorting by sip2dsig";
     }
     // check cpfPtrs from the begining, remove the leading lepton (pid = +-11 or +-13)
-    for (auto it = cpfPtrs.begin(); it != cpfPtrs.end(); ++it) {
-      if (std::abs((*it)->pdgId()) == 11 || std::abs((*it)->pdgId()) == 13) {
-        cpfPtrs.erase(it);
+    int cpfCount = 0;
+    for (const auto &cand : cpfPtrs) {
+      if ((std::abs(cand->pdgId()) == 11 || std::abs(cand->pdgId()) == 13) && !isLostTrackMap[cand.key()]) {
+        // erase
+        cpfPtrs.erase(cpfPtrs.begin() + cpfCount);
+
+        // correct jet p4
+        math::XYZTLorentzVector jetP4_mod = jetScaled.p4() - cand->p4();
+        jetScaled.setP4(jetP4_mod);
+
         // fill the removed lepton features
-        fts.fill("removed_lep_pt", (*it)->pt());
-        fts.fill("removed_lep_eta", (*it)->eta());
-        fts.fill("removed_lep_phi", (*it)->phi());
-        fts.fill("removed_lep_pid", (*it)->pdgId());
+        fts.fill("removed_lep_pt", cand->pt());
+        fts.fill("removed_lep_eta", cand->eta());
+        fts.fill("removed_lep_phi", cand->phi());
+        fts.fill("removed_lep_pid", cand->pdgId());
         break;
       }
+      ++cpfCount;
     }
   }
 
@@ -676,7 +684,7 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
   }
 }
 
-void ParticleTransformerAK8TagInfoProducer::fillSVFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, const reco::Jet &jetScaled) {
+void ParticleTransformerAK8TagInfoProducer::fillSVFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet, const double &k_scale, reco::Jet &jetScaled) {
   std::vector<const reco::VertexCompositePtrCandidate *> jetSVs;
   for (const auto &sv : *svs_) {
     if (reco::deltaR2(sv, jet) < jet_radius_ * jet_radius_) {
