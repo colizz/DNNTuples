@@ -46,25 +46,15 @@ options.parseArguments()
 # test command: cmsRun DeepNtuplizerAK8.py maxEvents=100 isTrainSample=1
 
 globalTagMap = {
-    'auto': 'auto:phase1_2018_realistic',
-    'UL18': '106X_upgrade2018_realistic_v16_L1v1',
-    'UL17': '106X_mc2017_realistic_v9',
+    '23': '130X_mcRun3_2023_realistic_v15',
+    '23BPix': '130X_mcRun3_2023_realistic_postBPix_v6',
 }
+era = '23'
 
 ## current workflow: only run interactively
 assert options.inputDataset == '' and len(options.inputFiles) == 1, 'Only run interactively with file len=1'
 print("Running", options.inputFiles)
-era = 'auto'
-for k in globalTagMap:
-    if k in options.inputDataset:
-        era = k
-if options.inputDataset == '':
-    _inputfile = options.inputFiles[0]
-    if '2017/' in _inputfile or 'UL17' in _inputfile:
-        era = 'UL17'
-    elif '2018/' in _inputfile or 'UL18' in _inputfile:
-        era = 'UL18'
-print('++era: ', era)
+
 # ---------------------------------------------------------
 process = cms.Process("DNNFiller")
 
@@ -98,105 +88,56 @@ process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, globalTagMap[era], '')
 print('Using global tag', process.GlobalTag.globaltag)
-# ---------------------------------------------------------
-# read JEC from sqlite
-# if era == 'Summer19UL17':
-#     import os
-#     jecTag = 'Summer19UL17_V5_MC'
-#     jecFile = '%s.db' % jecTag
-#     if not os.path.exists(jecFile):
-#         os.symlink('../data/' + jecFile, jecFile)
-#     from CondCore.CondDB.CondDB_cfi import CondDB
-#     CondDBJECFile = CondDB.clone(connect=cms.string('sqlite:%s' % jecFile))
-#     process.jec = cms.ESSource('PoolDBESSource',
-#                                CondDBJECFile,
-#                                toGet=cms.VPSet(
-#                                    cms.PSet(
-#                                        record=cms.string('JetCorrectionsRecord'),
-#                                        tag=cms.string('JetCorrectorParametersCollection_%s_AK4PFchs' % jecTag),
-#                                        label=cms.untracked.string('AK4PFchs')
-#                                    ),
-#                                    cms.PSet(
-#                                        record=cms.string('JetCorrectionsRecord'),
-#                                        tag=cms.string('JetCorrectorParametersCollection_%s_AK4PFPuppi' % jecTag),
-#                                        label=cms.untracked.string('AK4PFPuppi')
-#                                    ),
-#                                    # ...and so on for all jet types you need
-#                                )
-#                                )
-#     print(jecTag, process.jec.toGet)
-#     # Add an ESPrefer to override JEC that might be available from the global tag
-#     process.es_prefer_jec = cms.ESPrefer('PoolDBESSource', 'jec')
-# ---------------------------------------------------------
-# Update to PuppiV14
-# from CommonTools.PileupAlgos.customizePuppiTune_cff import UpdatePuppiTuneV14_MC
-# UpdatePuppiTuneV14_MC(process)
-# ---------------------------------------------------------
-from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
-from RecoBTag.ONNXRuntime.pfDeepBoostedJet_cff import _pfDeepBoostedJetTagsAll as pfDeepBoostedJetTagsAll
-from RecoBTag.ONNXRuntime.pfParticleNet_cff import _pfParticleNetJetTagsAll as pfParticleNetJetTagsAll
-from RecoBTag.ONNXRuntime.pfParticleNet_cff import _pfParticleNetMassRegressionOutputs as pfParticleNetMassRegressionOutputs
 
 # !!! set `useReclusteredJets = True ` if you need to recluster jets (e.g., to adopt a new Puppi tune) !!!
-useReclusteredJets = False
+useReclusteredJets = True
 jetR = 0.8
 
 # only inference the new taggers when not producing the training sample
 doCustomTaggerInference = True if not options.isTrainSample else False
 
-bTagDiscriminators = [
-    'pfCombinedInclusiveSecondaryVertexV2BJetTags',
-    'pfBoostedDoubleSecondaryVertexAK8BJetTags',
-    # 'pfDeepDoubleBvLJetTags:probHbb',
-    # 'pfDeepDoubleCvLJetTags:probHcc',
-    # 'pfDeepDoubleCvBJetTags:probHcc',
-    # 'pfMassIndependentDeepDoubleBvLJetTags:probHbb',
-    # 'pfMassIndependentDeepDoubleCvLJetTags:probHcc',
-    # 'pfMassIndependentDeepDoubleCvBJetTags:probHcc',
-]
-
-subjetBTagDiscriminators = ['None']
-
 # from dnntuple v9: infer the new tagger so as to store the hidden layer scores in a special branch jet_custom_discs
-from DeepNTuples.Ntupler.jetTools import updateJetCollection # use custom updataJetCollection
+from DeepNTuples.Ntupler.jetTools import updateJetCollection # use custom updataJetCollection with new tagger configs included
 from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
-btagDiscriminatorsCustomSaveAsCompact = _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
+btagDiscriminatorsCustomSaveAsCompact = []
 btagDiscriminatorsCustomSaveAsSeparate = []
 
 if doCustomTaggerInference:
     from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedDeepHWWV1_cff import _pfMassDecorrelatedDeepHWWV1JetTagsAll
     from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV1_cff import _pfMassDecorrelatedInclParticleTransformerV1JetTagsAll
-    from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScores
-    btagDiscriminatorsCustomSaveAsSeparate += _pfMassDecorrelatedDeepHWWV1JetTagsAll + _pfMassDecorrelatedInclParticleTransformerV1JetTagsAll + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScores
+    _pfMassDecorrelatedInclParticleTransformerV1JetTagsSelected = [disc for disc in _pfMassDecorrelatedInclParticleTransformerV1JetTagsAll if 'hidNeuron' not in disc]
+    _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScoresSelected = [
+        'pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags:' + flav_name for flav_name in [
+            'probTopbWcs', 'probTopbWqq', 'probTopbWc', 'probTopbWs', 'probTopbWq', 'probTopbWev', 'probTopbWmv', 'probTopbWtauev', 'probTopbWtaumv', 'probTopbWtauhv',
+            'probTopWcs', 'probTopWqq', 'probTopWev', 'probTopWmv', 'probTopWtauev', 'probTopWtaumv', 'probTopWtauhv',
+            'probHbb', 'probHcc', 'probHss', 'probHqq', 'probHbc', 'probHcs', 'probHgg', 'probHee', 'probHmm', 'probHtauhtaue', 'probHtauhtaum', 'probHtauhtauh',
+            'probHWWcscs', 'probHWWcsqq', 'probHWWqqqq', 'probHWWcsc', 'probHWWcss', 'probHWWcsq', 'probHWWqqc', 'probHWWqqs', 'probHWWqqq',
+            'probHWWcsev', 'probHWWqqev', 'probHWWcsmv', 'probHWWqqmv', 'probHWWcstauev', 'probHWWqqtauev', 'probHWWcstaumv', 'probHWWqqtaumv', 'probHWWcstauhv', 'probHWWqqtauhv',
+            'probQCDbb', 'probQCDcc', 'probQCDb', 'probQCDc', 'probQCDothers', 
+            'resonanceMassCorr', 'visiableMassCorr'
+            ]
+        ]
+    btagDiscriminatorsCustomSaveAsSeparate += _pfMassDecorrelatedDeepHWWV1JetTagsAll + _pfMassDecorrelatedInclParticleTransformerV1JetTagsSelected + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScoresSelected
 
-if useReclusteredJets:
-    JETCorrLevels = ['L2Relative', 'L3Absolute']
+# apply the new puppi tune
+assert useReclusteredJets == True
+from DeepNTuples.Ntupler.puppiJetMETReclusteringFromMiniAOD_cff import puppiJetMETReclusterFromMiniAOD
+process = puppiJetMETReclusterFromMiniAOD(
+    process, runOnMC=True, useExistingWeights=False,
+    custom_dict=dict(updateJetCollection=updateJetCollection, btagDiscriminatorsAK8=btagDiscriminatorsCustomSaveAsCompact + btagDiscriminatorsCustomSaveAsSeparate)
+)
+# Set the flag to recompute puppi weights to ensure that the PuppiProducers will do what we want
+# just in case they were overridden beforehand.
+process.packedpuppi.useExistingWeights = False
+process.packedpuppiNoLep.useExistingWeights = False
+# process.packedpuppi.useExp = True
+# process.packedpuppiNoLep.useExp = True
+process.packedpuppi.UseFromPV2Recovery = False
+process.packedpuppi.PtMinForFromPV2Recovery = 0.0
+process.packedpuppiNoLep.UseFromPV2Recovery = False
+process.packedpuppiNoLep.PtMinForFromPV2Recovery = 0.0
 
-    from DeepNTuples.Ntupler.jetToolbox_cff import jetToolbox
-    jetToolbox(process, 'ak8', 'dummySeq', 'noOutput', PUMethod='Puppi', JETCorrPayload='AK8PFPuppi',
-               JETCorrLevels=JETCorrLevels, Cut='pt > 170.0 && abs(rapidity()) < 2.4', runOnMC=True, addNsub=True,
-               maxTau=3, addSoftDrop=True, addSoftDropSubjets=True, subJETCorrPayload='AK4PFPuppi',
-               subJETCorrLevels=JETCorrLevels, bTagDiscriminators=['pfCombinedInclusiveSecondaryVertexV2BJetTags'],
-               subjetBTagDiscriminators=subjetBTagDiscriminators)
-
-    updateJetCollection(
-        process,
-        jetSource=cms.InputTag('packedPatJetsAK8PFPuppiSoftDrop'),
-        rParam=jetR,
-        jetCorrections=('AK8PFPuppi', cms.vstring(['L2Relative', 'L3Absolute']), 'None'),
-        btagDiscriminators=bTagDiscriminators + pfDeepBoostedJetTagsAll + pfParticleNetJetTagsAll + pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsCompact + btagDiscriminatorsCustomSaveAsSeparate,
-        postfix='AK8WithPuppiDaughters',  # needed to tell the producers that the daughters are puppi-weighted
-    )
-    srcJets = cms.InputTag('selectedUpdatedPatJetsAK8WithPuppiDaughters')
-else:
-    updateJetCollection(
-        process,
-        jetSource=cms.InputTag('slimmedJetsAK8'),
-        rParam=jetR,
-        jetCorrections=('AK8PFPuppi', cms.vstring(['L2Relative', 'L3Absolute']), 'None'),
-        btagDiscriminators=pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsCompact + btagDiscriminatorsCustomSaveAsSeparate,
-    )
-    srcJets = cms.InputTag('selectedUpdatedPatJets')
+srcJets = cms.InputTag('slimmedJetsAK8')
 # ---------------------------------------------------------
 from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask, addToProcessAndTask
 patTask = getPatAlgosToolsTask(process)
@@ -271,7 +212,11 @@ process.genJetTask = cms.Task(
 process.load("DeepNTuples.Ntupler.DeepNtuplizer_cfi")
 process.deepntuplizer.jets = srcJets
 process.deepntuplizer.useReclusteredJets = useReclusteredJets
-process.deepntuplizer.bDiscriminators = bTagDiscriminators + pfDeepBoostedJetTagsAll + pfParticleNetJetTagsAll + pfParticleNetMassRegressionOutputs + btagDiscriminatorsCustomSaveAsSeparate
+
+from RecoBTag.ONNXRuntime.pfParticleNet_cff import _pfParticleNetJetTagsAll as pfParticleNetJetTagsAll
+from RecoBTag.ONNXRuntime.pfParticleNet_cff import _pfParticleNetMassRegressionOutputs as pfParticleNetMassRegressionOutputs
+from RecoBTag.ONNXRuntime.pfParticleNetFromMiniAODAK8_cff import _pfParticleNetFromMiniAODAK8JetTagsAll as pfParticleNetFromMiniAODAK8JetTagsAll
+process.deepntuplizer.bDiscriminators = pfParticleNetJetTagsAll + pfParticleNetMassRegressionOutputs + pfParticleNetFromMiniAODAK8JetTagsAll + btagDiscriminatorsCustomSaveAsSeparate
 process.deepntuplizer.bDiscriminatorsCompactSave = btagDiscriminatorsCustomSaveAsCompact
 
 process.deepntuplizer.genJetsWithNuMatch = 'ak8GenJetsWithNuMatch'

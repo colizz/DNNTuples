@@ -70,6 +70,7 @@ private:
   edm::EDGetTokenT<edm::ValueMap<float>> puppi_value_map_token_;
   edm::EDGetTokenT<edm::ValueMap<int>> pvasq_value_map_token_;
   edm::EDGetTokenT<edm::Association<VertexCollection>> pvas_token_;
+  edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> track_builder_token_;
 
   edm::Handle<VertexCollection> vtxs_;
   edm::Handle<SVCollection> svs_;
@@ -137,7 +138,9 @@ ParticleTransformerAK8TagInfoProducer::ParticleTransformerAK8TagInfoProducer(con
       pfcand_token_(consumes<CandidateView>(iConfig.getParameter<edm::InputTag>("pf_candidates"))),
       lt_token_(consumes<CandidateView>(iConfig.getParameter<edm::InputTag>("lost_tracks"))),
       use_puppi_value_map_(false),
-      use_pvasq_value_map_(false) {
+      use_pvasq_value_map_(false),
+      track_builder_token_(
+          esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"))) {
   const auto &puppi_value_map_tag = iConfig.getParameter<edm::InputTag>("puppi_value_map");
   if (!puppi_value_map_tag.label().empty()) {
     puppi_value_map_token_ = consumes<edm::ValueMap<float>>(puppi_value_map_tag);
@@ -197,7 +200,7 @@ void ParticleTransformerAK8TagInfoProducer::produce(edm::Event &iEvent, const ed
   iEvent.getByToken(pfcand_token_, pfcands_);
   iEvent.getByToken(lt_token_, lts_);
 
-  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", track_builder_);
+  track_builder_ = iSetup.getHandle(track_builder_token_);
 
   if (use_puppi_value_map_) {
     iEvent.getByToken(puppi_value_map_token_, puppi_value_map_);
@@ -626,7 +629,7 @@ void ParticleTransformerAK8TagInfoProducer::fillSVFeatures(DeepBoostedJetFeature
   for (const auto *sv : jetSVs) {
     // basic kinematics
     fts.fill("sv_mask", 1);
-
+  
     fts.fill("sv_px", sv->px());
     fts.fill("sv_py", sv->py());
     fts.fill("sv_pz", sv->pz());
