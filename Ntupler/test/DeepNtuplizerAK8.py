@@ -40,6 +40,7 @@ options.register('isTrainSample', True, VarParsing.multiplicity.singleton,
 options.register('addMET', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "add MET vars to output file")
 options.register('addLowLevel', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "add low-level vars to output file")
 options.register('isMDTagger', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "use MD tagger categorisation")
+options.register('keepAllEvents', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "keep all events for QCD and ttbar when creating inference dataset (isTrainSample=False)")
 
 options.parseArguments()
 
@@ -240,6 +241,7 @@ process.deepntuplizer.isTrainSample = options.isTrainSample
 process.deepntuplizer.addMET = options.addMET
 process.deepntuplizer.addLowLevel = options.addLowLevel
 process.deepntuplizer.isMDTagger = options.isMDTagger
+process.deepntuplizer.keepAllEvents = options.keepAllEvents
 #==============================================================================================================================#
 process.p = cms.Path(process.deepntuplizer)
 process.p.associate(patTask)
