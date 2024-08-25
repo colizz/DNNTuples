@@ -131,12 +131,6 @@ process = puppiJetMETReclusterFromMiniAOD(
 # just in case they were overridden beforehand.
 process.packedpuppi.useExistingWeights = False
 process.packedpuppiNoLep.useExistingWeights = False
-# process.packedpuppi.useExp = True
-# process.packedpuppiNoLep.useExp = True
-process.packedpuppi.UseFromPV2Recovery = False
-process.packedpuppi.PtMinForFromPV2Recovery = 0.0
-process.packedpuppiNoLep.UseFromPV2Recovery = False
-process.packedpuppiNoLep.PtMinForFromPV2Recovery = 0.0
 
 srcJets = cms.InputTag('slimmedJetsAK8')
 # ---------------------------------------------------------
