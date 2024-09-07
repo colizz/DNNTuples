@@ -6,6 +6,7 @@ def updateSupportedBtagDiscr(supportedBtagInfos, supportedBtagDiscr, supportedMe
     from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerV2JetTagsProbs, _pfMassDecorrelatedInclParticleTransformerV2JetTagsMetaDiscrs
     from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerAK15V2JetTagsProbs, _pfMassDecorrelatedInclParticleTransformerAK15V2JetTagsMetaDiscrs # AK15 tagger
     from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbs, _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsMetaDiscrs
+    from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV3_cff import _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsProbs, _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsMetaDiscrs
     
     # update supportedBtagDiscr
     supportedBtagInfos.extend(["pfMassDecorrelatedDeepHWWV1TagInfos"])
@@ -22,6 +23,8 @@ def updateSupportedBtagDiscr(supportedBtagInfos, supportedBtagDiscr, supportedMe
         supportedBtagDiscr[disc] = [["pfMassDecorrelatedInclParticleTransformerAK15V2TagInfos"]]
     for disc in _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbs + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsMetaDiscrs:
         supportedBtagDiscr[disc] = [["pfMassDecorrelatedInclParticleTransformerV2TagInfos"]]
+    for disc in _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsProbs + _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsMetaDiscrs:
+        supportedBtagDiscr[disc] = [["pfMassDecorrelatedInclParticleTransformerV2TagInfos"]] # v3 still uses v2 tag infos
     # update supportedMetaDiscr
     for disc in _pfMassDecorrelatedDeepHWWV1JetTagsMetaDiscrs:
         supportedMetaDiscr[disc] = _pfMassDecorrelatedDeepHWWV1JetTagsProbs
@@ -33,6 +36,8 @@ def updateSupportedBtagDiscr(supportedBtagInfos, supportedBtagDiscr, supportedMe
         supportedMetaDiscr[disc] = _pfMassDecorrelatedInclParticleTransformerAK15V2JetTagsProbs
     for disc in _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsMetaDiscrs:
         supportedMetaDiscr[disc] = _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbs
+    for disc in _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsMetaDiscrs:
+        supportedMetaDiscr[disc] = _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsProbs
 
     return supportedBtagInfos, supportedBtagDiscr, supportedMetaDiscr
 
@@ -40,3 +45,4 @@ def updateSupportedBtagDiscr(supportedBtagInfos, supportedBtagDiscr, supportedMe
 from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedDeepHWWV1_cff import *
 from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV1_cff import *
 from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import *
+from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV3_cff import *

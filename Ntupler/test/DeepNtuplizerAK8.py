@@ -120,7 +120,12 @@ if doCustomTaggerInference:
             'resonanceMassCorr', 'visiableMassCorr'
             ]
         ]
-    btagDiscriminatorsCustomSaveAsSeparate += _pfMassDecorrelatedDeepHWWV1JetTagsAll + _pfMassDecorrelatedInclParticleTransformerV1JetTagsSelected + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScoresSelected
+    _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsProbsRawScoresSelected = [
+        'pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTags:' + flav_name for flav_name in [
+            'probHbb', 'probHcc', 'probHss', 'probHqq', 'probHbc', 'probHcs', 'probHgg', 'probHee', 'probHmm', 'probHtauhtaue', 'probHtauhtaum', 'probHtauhtauh',
+            ]
+        ]
+    btagDiscriminatorsCustomSaveAsSeparate += _pfMassDecorrelatedDeepHWWV1JetTagsAll + _pfMassDecorrelatedInclParticleTransformerV1JetTagsSelected + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScoresSelected + _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsProbsRawScoresSelected
 
 # apply the new puppi tune
 assert useReclusteredJets == True
