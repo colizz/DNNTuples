@@ -44,6 +44,7 @@ private:
   bool isTrainSample_ = false;
   bool isMDTagger_ = true;
   bool fillSeparateLabels_ = false;
+  int adhocFixMode_ = 0;
 
   bool sample_use_pythia_ = false;
   bool sample_use_herwig_ = false;

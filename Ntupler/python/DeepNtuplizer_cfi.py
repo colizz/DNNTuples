@@ -39,4 +39,5 @@ deepntuplizer = cms.EDAnalyzer('DeepNtuplizer',
                                 isMDTagger    = cms.untracked.bool(True),
                                 keepAllEvents = cms.untracked.bool(False),
                                 fillSeparateLabels = cms.untracked.bool(False),
+                                adhocFixMode  = cms.untracked.int32(0),
                                 )

@@ -43,6 +43,7 @@ options.register('addMET', False, VarParsing.multiplicity.singleton, VarParsing.
 options.register('addLowLevel', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "add low-level vars to output file")
 options.register('isMDTagger', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "use MD tagger categorisation")
 options.register('keepAllEvents', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "keep all events for QCD and ttbar when creating inference dataset (isTrainSample=False)")
+options.register('adhocFixMode', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "ad-hoc fix mode")
 
 options.parseArguments()
 
@@ -108,6 +109,7 @@ btagDiscriminatorsCustomSaveAsSeparate = []
 if doCustomTaggerInference:
     from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedDeepHWWV1_cff import _pfMassDecorrelatedDeepHWWV1JetTagsAll
     from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV1_cff import _pfMassDecorrelatedInclParticleTransformerV1JetTagsAll
+    from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV3_cff import _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsAll
     _pfMassDecorrelatedInclParticleTransformerV1JetTagsSelected = [disc for disc in _pfMassDecorrelatedInclParticleTransformerV1JetTagsAll if 'hidNeuron' not in disc]
     _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScoresSelected = [
         'pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTags:' + flav_name for flav_name in [
@@ -120,12 +122,8 @@ if doCustomTaggerInference:
             'resonanceMassCorr', 'visiableMassCorr'
             ]
         ]
-    _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsProbsRawScoresSelected = [
-        'pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTags:' + flav_name for flav_name in [
-            'probHbb', 'probHcc', 'probHss', 'probHqq', 'probHbc', 'probHcs', 'probHgg', 'probHee', 'probHmm', 'probHtauhtaue', 'probHtauhtaum', 'probHtauhtauh',
-            ]
-        ]
-    btagDiscriminatorsCustomSaveAsSeparate += _pfMassDecorrelatedDeepHWWV1JetTagsAll + _pfMassDecorrelatedInclParticleTransformerV1JetTagsSelected + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScoresSelected + _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsProbsRawScoresSelected
+    _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsSelected = [disc for disc in _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsAll if 'hidNeuron' not in disc]
+    btagDiscriminatorsCustomSaveAsSeparate += _pfMassDecorrelatedDeepHWWV1JetTagsAll + _pfMassDecorrelatedInclParticleTransformerV1JetTagsSelected + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScoresSelected # + _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsSelected
 
 # apply the new puppi tune
 assert useReclusteredJets == True
@@ -243,6 +241,7 @@ process.deepntuplizer.addMET = options.addMET
 process.deepntuplizer.addLowLevel = options.addLowLevel
 process.deepntuplizer.isMDTagger = options.isMDTagger
 process.deepntuplizer.keepAllEvents = options.keepAllEvents
+process.deepntuplizer.adhocFixMode = options.adhocFixMode
 #==============================================================================================================================#
 process.p = cms.Path(process.deepntuplizer)
 process.p.associate(patTask)
