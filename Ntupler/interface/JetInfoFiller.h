@@ -46,6 +46,7 @@ private:
   bool isQCDSample_ = false;
   bool isTTBarSample_ = false;
   bool isTrainSample_ = false;
+  bool keepAllEvents_ = false;
   std::vector<std::string> btag_discriminators_;
   std::vector<std::string> bDiscriminatorsCompactSave_;
 

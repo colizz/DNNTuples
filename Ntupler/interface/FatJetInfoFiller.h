@@ -44,6 +44,7 @@ private:
   bool isTrainSample_ = false;
   bool isMDTagger_ = true;
   bool fillSeparateLabels_ = false;
+  int adhocFixMode_ = 0;
 
   bool sample_use_pythia_ = false;
   bool sample_use_herwig_ = false;
@@ -74,7 +75,14 @@ private:
     "bbb", "bbc", "bbs", "bbq", "ccb", "ccc", "ccs", "ccq", "ssb", "ssc", "sss", "ssq", "qqb", "qqc", "qqs", "qqq",
     "bbee", "bbmm", "bbe", "bbm", "bee", "bmm", "bbtauhtaue", "bbtauhtaum", "bbtauhtauh", "btauhtaue", "btauhtaum", "btauhtauh", "ccee", "ccmm", "cce", "ccm", "cee", "cmm", "cctauhtaue", "cctauhtaum", "cctauhtauh", "ctauhtaue", "ctauhtaum", "ctauhtauh", "ssee", "ssmm", "sse", "ssm", "see", "smm", "sstauhtaue", "sstauhtaum", "sstauhtauh", "stauhtaue", "stauhtaum", "stauhtauh", "qqee", "qqmm", "qqe", "qqm", "qee", "qmm", "qqtauhtaue", "qqtauhtaum", "qqtauhtauh", "qtauhtaue", "qtauhtaum", "qtauhtauh"};
   std::vector<std::string> labelQCD_ = {"bb", "cc", "b", "c", "others"};
-  std::vector<std::string> labelCust_ = {"btaue", "btaum", "btauh"};
+  std::vector<std::string> labelH2pExt_ = {
+    "btaue", "btaum", "btauh", "aa", "x5", "x6", "x7", "x8", "x9", "x10",
+    "x11", "x12", "x13", "x14", "x15", "x16", "x17", "x18", "x19", "x20",
+    "x21", "x22", "x23", "x24", "x25", "x26", "x27", "x28", "x29", "x30"}; // reserve 30 places
+  std::vector<std::string> labelHHVExt_ = {
+    "aabb", "aacc", "aass", "aaqq", "aabc", "aacs", "aabq", "aacq", "aasq", "aagg", "aaee", "aamm", "aatauhtaue", "aatauhtaum", "aatauhtauh",
+    "aab", "aac", "aas", "aaq", "aag", "aae", "aam", "aataue", "aataum", "aatauh",
+    "abb", "acc", "ass", "aqq", "abc", "acs", "abq", "acq", "asq", "agg", "aee", "amm", "atauhtaue", "atauhtaum", "atauhtauh"};
   std::vector<std::string> labels_ = {};
 
 };

@@ -24,6 +24,7 @@ void FatJetInfoFiller::readConfig(const edm::ParameterSet& iConfig, edm::Consume
   isTrainSample_ = iConfig.getUntrackedParameter<bool>("isTrainSample", false);
   isMDTagger_ = iConfig.getUntrackedParameter<bool>("isMDTagger", true);
   fillSeparateLabels_ = iConfig.getUntrackedParameter<bool>("fillSeparateLabels", false);
+  adhocFixMode_ = iConfig.getUntrackedParameter<int>("adhocFixMode", 0);
   fjName = iConfig.getParameter<std::string>("jetType") + std::to_string(int(10*jetR_));
 }
 
@@ -54,7 +55,8 @@ void FatJetInfoFiller::book() {
       for (auto& l: labelHZZ_)  labels_.push_back("H_ZxZx_" + l);
       for (auto& l: labelHZZ_)  labels_.push_back("H_ZxZxStar_" + l);
       for (auto& l: labelQCD_)  labels_.push_back("QCD_" + l);
-      for (auto& l: labelCust_) labels_.push_back("Cust_" + l);
+      for (auto& l: labelH2pExt_) labels_.push_back("Hext_" + l);
+      for (auto& l: labelHHVExt_) labels_.push_back("H_HVext_" + l);
     } else {
       for (auto& l: labelTop_)  labels_.push_back("Top_" + l);
       for (auto& l: labelH2p_)  labels_.push_back("H_" + l);
@@ -93,16 +95,19 @@ void FatJetInfoFiller::book() {
   data.add<float>("fj_gen_eta", 0);
   data.add<float>("fj_gen_phi", 0);
   data.add<float>("fj_gen_mass", 0);
+  data.add<float>("fj_gen_pid", 0);
   data.add<float>("fj_gen_deltaR", 999);
   data.add<float>("fj_gendau1_pt", 0);
   data.add<float>("fj_gendau1_eta", 0);
   data.add<float>("fj_gendau1_phi", 0);
   data.add<float>("fj_gendau1_mass", 0);
+  data.add<float>("fj_gendau1_pid", 0);
   data.add<float>("fj_gendau1_deltaR", 999);
   data.add<float>("fj_gendau2_pt", 0);
   data.add<float>("fj_gendau2_eta", 0);
   data.add<float>("fj_gendau2_phi", 0);
   data.add<float>("fj_gendau2_mass", 0);
+  data.add<float>("fj_gendau2_pid", 0);
   data.add<float>("fj_gendau2_deltaR", 999);
 
   // sum of all hard particles inside a jet 
@@ -110,6 +115,10 @@ void FatJetInfoFiller::book() {
   data.add<float>("fj_genparts_eta", 0);
   data.add<float>("fj_genparts_phi", 0);
   data.add<float>("fj_genparts_mass", 0);
+  data.add<float>("fj_genpart1_pid", 0);
+  data.add<float>("fj_genpart2_pid", 0);
+  data.add<float>("fj_genpart3_pid", 0);
+  data.add<float>("fj_genpart4_pid", 0);
 
   // --- jet energy/mass regression ---
   data.add<float>("fj_genjet_pt", 0);
@@ -136,6 +145,7 @@ void FatJetInfoFiller::book() {
   data.add<float>("fj_eta", 0);
   data.add<float>("fj_phi", 0);
   data.add<float>("fj_mass", 0);
+  data.add<float>("fj_energy", 0);
 
   // substructure
   data.add<float>("fj_tau1", 0);
@@ -257,6 +267,14 @@ bool FatJetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
   if (isTrainSample_ && !isQCDSample_ && fjlabel.rfind("QCD_", 0) == 0)
     return false;
 
+  // ad-hoc fixes
+  if (adhocFixMode_ == 1) {
+    if (resparts.size() > 0 && resparts[0]->mass() > 255) {
+      // std::cout << ">> ad-hoc fix: high-mass resonance " << resparts[0]->mass() << std::endl;
+      return false;
+    }
+  }
+
   data.fill<int>("fj_isTop", fjlabel.rfind("Top_", 0) == 0);
   data.fill<int>("fj_isW",   fjlabel.rfind("W_", 0) == 0);
   data.fill<int>("fj_isZ",   fjlabel.rfind("Z_", 0) == 0);
@@ -298,25 +316,33 @@ bool FatJetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
   data.fill<float>("fj_gen_eta", resparts_size > 0 ? resparts[0]->eta() : -999);
   data.fill<float>("fj_gen_phi", resparts_size > 0 ? resparts[0]->phi() : -999);
   data.fill<float>("fj_gen_mass", resparts_size > 0 ? resparts[0]->mass() : 0);
+  data.fill<float>("fj_gen_pid", resparts_size > 0 ? resparts[0]->pdgId() : 0);
   data.fill<float>("fj_gen_deltaR", resparts_size > 0 ? reco::deltaR(jet, resparts[0]->p4()) : 999);
   data.fill<float>("fj_gendau1_pt", resparts_size > 1 ? resparts[1]->pt() : -999);
   data.fill<float>("fj_gendau1_eta", resparts_size > 1 ? resparts[1]->eta() : -999);
   data.fill<float>("fj_gendau1_phi", resparts_size > 1 ? resparts[1]->phi() : -999);
   data.fill<float>("fj_gendau1_mass", resparts_size > 1 ? resparts[1]->mass() : 0);
+  data.fill<float>("fj_gendau1_pid", resparts_size > 1 ? resparts[1]->pdgId() : 0);
   data.fill<float>("fj_gendau1_deltaR", resparts_size > 1 ? reco::deltaR(jet, resparts[1]->p4()) : 999);
   data.fill<float>("fj_gendau2_pt", resparts_size > 2 ? resparts[2]->pt() : -999);
   data.fill<float>("fj_gendau2_eta", resparts_size > 2 ? resparts[2]->eta() : -999);
   data.fill<float>("fj_gendau2_phi", resparts_size > 2 ? resparts[2]->phi() : -999);
   data.fill<float>("fj_gendau2_mass", resparts_size > 2 ? resparts[2]->mass() : 0);
+  data.fill<float>("fj_gendau2_pid", resparts_size > 2 ? resparts[2]->pdgId() : 0);
   data.fill<float>("fj_gendau2_deltaR", resparts_size > 2 ? reco::deltaR(jet, resparts[2]->p4()) : 999);
 
   // sum of all hard particles inside a jet
   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > sumP4(0,0,0,0);
+  int parts_size = parts.size();
   for (auto& p: parts) sumP4 += p->p4();
   data.fill<float>("fj_genparts_pt", sumP4.pt());
   data.fill<float>("fj_genparts_eta", sumP4.eta());
   data.fill<float>("fj_genparts_phi", sumP4.phi());
   data.fill<float>("fj_genparts_mass", sumP4.mass());
+  data.fill<float>("fj_genpart1_pid", parts_size > 0 ? parts[0]->pdgId() : 0);
+  data.fill<float>("fj_genpart2_pid", parts_size > 1 ? parts[1]->pdgId() : 0);
+  data.fill<float>("fj_genpart3_pid", parts_size > 2 ? parts[2]->pdgId() : 0);
+  data.fill<float>("fj_genpart4_pid", parts_size > 3 ? parts[3]->pdgId() : 0);
 
   if (debug_) {
     std::cout << "   gen resonance mass " << (resparts_size > 0 ? resparts[0]->mass() : 0) << std::endl;
@@ -330,6 +356,7 @@ bool FatJetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
   data.fill<float>("fj_eta", jet.eta());
   data.fill<float>("fj_phi", jet.phi());
   data.fill<float>("fj_mass", jet.mass());
+  data.fill<float>("fj_energy", jet.energy());
 
   // substructure
   float tau1 = jet.userFloat("Njettiness" + fjName +"Puppi:tau1");

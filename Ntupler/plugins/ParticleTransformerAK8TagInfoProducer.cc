@@ -44,6 +44,7 @@ private:
   void produce(edm::Event &, const edm::EventSetup &) override;
   void endStream() override {}
 
+  void fillJetFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet);
   void fillParticleFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet);
   void fillSVFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet);
 
@@ -80,12 +81,19 @@ private:
   edm::Handle<edm::ValueMap<int>> pvasq_value_map_;
   edm::Handle<edm::Association<VertexCollection>> pvas_;
 
+  const static std::vector<std::string> jet_features_;
   const static std::vector<std::string> charged_particle_features_;
   const static std::vector<std::string> neutral_particle_features_;
   const static std::vector<std::string> sv_features_;
   const reco::Vertex *pv_ = nullptr;
 };
 
+const std::vector<std::string> ParticleTransformerAK8TagInfoProducer::jet_features_{
+    "jet_pt_log",
+    "jet_eta",
+    "jet_mass_log",
+    "jet_energy_log",
+};
 const std::vector<std::string> ParticleTransformerAK8TagInfoProducer::charged_particle_features_{
     "cpfcandlt_puppiw",        "cpfcandlt_hcalFrac",       "cpfcandlt_VTX_ass",      "cpfcandlt_lostInnerHits",
     "cpfcandlt_quality",       "cpfcandlt_charge",         "cpfcandlt_isEl",         "cpfcandlt_isMu",
@@ -215,6 +223,9 @@ void ParticleTransformerAK8TagInfoProducer::produce(edm::Event &iEvent, const ed
     // create jet features
     DeepBoostedJetFeatures features;
     // declare all the feature variables (init as empty vector)
+    for (const auto &name : jet_features_) {
+      features.add(name);
+    }
     for (const auto &name : charged_particle_features_) {
       features.add(name);
     }
@@ -234,6 +245,7 @@ void ParticleTransformerAK8TagInfoProducer::produce(edm::Event &iEvent, const ed
       fill_vars = false;
 
     if (fill_vars) {
+      fillJetFeatures(features, jet);
       fillParticleFeatures(features, jet);
       fillSVFeatures(features, jet);
 
@@ -247,6 +259,17 @@ void ParticleTransformerAK8TagInfoProducer::produce(edm::Event &iEvent, const ed
   }
 
   iEvent.put(std::move(output_tag_infos));
+}
+
+void ParticleTransformerAK8TagInfoProducer::fillJetFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet) {
+  // reserve space
+  for (const auto &name : jet_features_) {
+    fts.reserve(name, 1);
+  }
+  fts.fill("jet_pt_log", std::log(jet.pt()));
+  fts.fill("jet_eta", jet.eta());
+  fts.fill("jet_mass_log", std::log(jet.mass()));
+  fts.fill("jet_energy_log", std::log(jet.energy()));
 }
 
 void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetFeatures &fts, const reco::Jet &jet) {

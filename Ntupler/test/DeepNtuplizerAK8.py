@@ -21,7 +21,9 @@ options.outputFile = 'output.root'
 # options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/BulkGravitonToHHTo4Z_MX-600to6000_MH-15to250_JHUVariableZMass/20UL17MiniAODv2/part3/miniv2_15820048-548.root' ## HZZ 1
 # options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/BulkGravitonToHHTo4Z_MX-600to6000_MH-15to250_JHUVariableZMass/20UL17MiniAODv2/part3/miniv2_15820048-549.root' ## HZZ 2
 # options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/BulkGravitonToHHTo4Z_MX-600to6000_MH-15to250_JHUVariableZMass2DMesh/20UL17MiniAODv2/part2/miniv2_15822201-2585.root' ## HZZ 2dmesh
-options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/PairVectorLQ_LQToBTau_HT-600to6000_M-15to250/20UL17MiniAODv2/miniv2_16076647-1.root' ## customized btau
+# options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/PairVectorLQ_LQToBTau_HT-600to6000_M-15to250/20UL17MiniAODv2/miniv2_16076647-1.root' ## customized btau
+# options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/BulkGravitonToHHTo4A_MX-Var_MH-15to650/20UL17MiniAODv2/miniv2_65374-9.root' ## H->aa
+options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/H3ToHHToWHorZH_HToAA_MX-Var_MH-15to650/20UL17MiniAODv2/miniv2_65373-4.root' ## H->WH/ZH->aaxx
 # options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/BulkGravToZZToZhadZhad_narrow_M-1000_TuneCP5_13TeV-madgraph-pythia/MINIAODSIM/106X_mc2017_realistic_v9-v2/110000/DABA0ABE-8F97-9747-9A7A-4E31435442E1.root' ## Zqq inference
 # options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/BulkGravToWWToWhadWhad_narrow_M-1000_TuneCP5_13TeV-madgraph-pythia/MINIAODSIM/106X_mc2017_realistic_v9-v2/260000/F1F668E3-CB4A-ED4E-9493-3485628D5059.root'  ## Wqq inference
 # options.inputFiles = '/store/mc/RunIISummer20UL17MiniAODv2/ZprimeToTT_M1200_W12_TuneCP2_PSweights_13TeV-madgraph-pythiaMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v1/230000/29D33B74-575C-2F41-B527-495528DB9990.root'  ## SM top
@@ -40,6 +42,8 @@ options.register('isTrainSample', True, VarParsing.multiplicity.singleton,
 options.register('addMET', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "add MET vars to output file")
 options.register('addLowLevel', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "add low-level vars to output file")
 options.register('isMDTagger', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "use MD tagger categorisation")
+options.register('keepAllEvents', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "keep all events for QCD and ttbar when creating inference dataset (isTrainSample=False)")
+options.register('adhocFixMode', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "ad-hoc fix mode")
 
 options.parseArguments()
 
@@ -160,7 +164,7 @@ subjetBTagDiscriminators = ['None']
 # from dnntuple v9: infer the new tagger so as to store the hidden layer scores in a special branch jet_custom_discs
 from DeepNTuples.Ntupler.jetTools import updateJetCollection # use custom updataJetCollection
 from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
-btagDiscriminatorsCustomSaveAsCompact = _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
+btagDiscriminatorsCustomSaveAsCompact = [] # _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsHidNeurons
 btagDiscriminatorsCustomSaveAsSeparate = []
 
 if doCustomTaggerInference:
@@ -295,6 +299,8 @@ process.deepntuplizer.isTrainSample = options.isTrainSample
 process.deepntuplizer.addMET = options.addMET
 process.deepntuplizer.addLowLevel = options.addLowLevel
 process.deepntuplizer.isMDTagger = options.isMDTagger
+process.deepntuplizer.keepAllEvents = options.keepAllEvents
+process.deepntuplizer.adhocFixMode = options.adhocFixMode
 #==============================================================================================================================#
 process.p = cms.Path(process.deepntuplizer)
 process.p.associate(patTask)
