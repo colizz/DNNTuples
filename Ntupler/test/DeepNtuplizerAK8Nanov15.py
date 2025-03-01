@@ -32,8 +32,9 @@ globalTagMap = {
     '23': '130X_mcRun3_2023_realistic_v15',
     '23BPix': '130X_mcRun3_2023_realistic_postBPix_v6',
     '24' :  '140X_mcRun3_2024_realistic_v26',
+    '25' : '150X_mcRun3_2024_realistic_v1',
 }
-era = '24'
+era = '25'
 
 ## current workflow: only run interactively
 assert options.inputDataset == '' and len(options.inputFiles) == 1, 'Only run interactively with file len=1'
