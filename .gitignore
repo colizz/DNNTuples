@@ -15,4 +15,5 @@ Ntupler/data/InclParticleTransformer-MD/ak8/V02-HidLayer/
 Ntupler/data/InclParticleTransformer-MD/ak8/V02a/
 Ntupler/data/InclParticleTransformer-MD/ak15/V02/
 Ntupler/data/InclParticleTransformer-MD/ak8/V03beta1/
-Ntupler/data/InclParticleTransformer-MD/ak8/V03/
+Ntupler/data/InclParticleTransformer-MD/ak8/V03/.DS_Store
+.gitignore
