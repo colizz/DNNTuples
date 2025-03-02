@@ -5,6 +5,7 @@
   <use name="DataFormats/NanoAOD"/>
   <use name="DataFormats/VertexReco"/>
   <use name="DataFormats/BTauReco"/>
+  <use name="DataFormats/Common"/>
   <use name="CommonTools/Utils"/>
   <use name="CommonTools/UtilAlgos"/>
   <use name="RecoBTag/FeatureTools"/>

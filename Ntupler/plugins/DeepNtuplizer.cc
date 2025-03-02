@@ -15,6 +15,7 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
+#include "DataFormats/Common/interface/AssociationMap.h"
 
 #include "DeepNTuples/NtupleCommons/interface/TreeWriter.h"
 
@@ -22,6 +23,7 @@
 #include "DeepNTuples/Ntupler/interface/FatJetInfoFiller.h"
 #include "DeepNTuples/Ntupler/interface/SVFiller.h"
 #include "DeepNTuples/Ntupler/interface/PFCompleteFiller.h"
+#include "DeepNTuples/Ntupler/interface/ScoutFatJetCompleteFiller.h"
 
 
 using namespace deepntuples;
@@ -47,8 +49,10 @@ private:
   edm::EDGetTokenT<edm::Association<reco::GenJetCollection>> genJetWithNuSoftDropMatchToken_;
   edm::EDGetTokenT<edm::Association<reco::GenJetCollection>> genJetNoNuMatchToken_;
   edm::EDGetTokenT<edm::Association<reco::GenJetCollection>> genJetNoNuSoftDropMatchToken_;
+  edm::EDGetTokenT<edm::AssociationMap<edm::OneToOne<reco::JetView, reco::JetView>>> scoutJetMatchToken_;
 
   bool addLowLevel_;
+  bool useScoutJet_ = false;
 
   edm::Service<TFileService> fs;
   TreeWriter *treeWriter = nullptr;
@@ -70,6 +74,11 @@ DeepNtuplizer::DeepNtuplizer(const edm::ParameterSet& iConfig):
     genJetNoNuSoftDropMatchToken_(consumes<edm::Association<reco::GenJetCollection>>(iConfig.getParameter<edm::InputTag>("genJetsNoNuSoftDropMatch"))),
     addLowLevel_(iConfig.getUntrackedParameter<bool>("addLowLevel", true))
 {
+  const auto &scoutJetMatchTag = iConfig.getParameter<edm::InputTag>("scoutingJetMatch");
+  if (!scoutJetMatchTag.label().empty()) {
+    scoutJetMatchToken_ = consumes<edm::AssociationMap<edm::OneToOne<reco::JetView, reco::JetView>>>(scoutJetMatchTag);
+    useScoutJet_ = true;
+  }
 
   // register modules
   JetInfoFiller *jetinfo = new JetInfoFiller("", jetR);
@@ -84,6 +93,11 @@ DeepNtuplizer::DeepNtuplizer(const edm::ParameterSet& iConfig):
 
     PFCompleteFiller *parts = new PFCompleteFiller("", jetR);
     addModule(parts);
+  }
+
+  if (useScoutJet_) {
+    ScoutFatJetCompleteFiller *scoutfjs = new ScoutFatJetCompleteFiller("", jetR);
+    addModule(scoutfjs);
   }
 
   // read config and init modules
@@ -124,6 +138,11 @@ void DeepNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   edm::Handle<edm::Association<reco::GenJetCollection>> genJetNoNuSoftDropMatchHandle;
   iEvent.getByToken(genJetNoNuSoftDropMatchToken_, genJetNoNuSoftDropMatchHandle);
 
+  edm::Handle<edm::AssociationMap<edm::OneToOne<reco::JetView, reco::JetView>>> scoutJetMatchHandle;
+  if (useScoutJet_) {
+    iEvent.getByToken(scoutJetMatchToken_, scoutJetMatchHandle);
+  }
+
   for (unsigned idx=0; idx<jets->size(); ++idx){
     bool write_ = true;
 
@@ -133,6 +152,9 @@ void DeepNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     jet_helper.setGenjetWithNuSoftDrop((*genJetWithNuSoftDropMatchHandle)[jets->refAt(idx)]);
     jet_helper.setGenjetNoNu((*genJetNoNuMatchHandle)[jets->refAt(idx)]);
     jet_helper.setGenjetNoNuSoftDrop((*genJetNoNuSoftDropMatchHandle)[jets->refAt(idx)]);
+    if (useScoutJet_) {
+      jet_helper.setScoutJet((*scoutJetMatchHandle)[jets->refAt(idx)]);
+    }
 
     for (auto *m : modules_){
       if (!m->fillBranches(jet.correctedJet("Uncorrected"), idx, jet_helper)){
