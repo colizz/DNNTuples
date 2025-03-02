@@ -97,42 +97,42 @@ void PFCompleteFiller::book() {
   data.addMulti<float>("cpfcandlt_btagJetDistVal");
 //  data.addMulti<float>("cpfcandlt_btagJetDistSig"); // always gives 0?
 
-  //Tracker per layer
-  //Pixel barrel 
-  data.addMulti<float>("cpfcandlt_nhitpixelBarrelLayer1");
-  data.addMulti<float>("cpfcandlt_nhitpixelBarrelLayer2");
-  data.addMulti<float>("cpfcandlt_nhitpixelBarrelLayer3");
-  data.addMulti<float>("cpfcandlt_nhitpixelBarrelLayer4");
-  //Pixel Endcap 
-  data.addMulti<float>("cpfcandlt_nhitpixelEndcapLayer1");
-  data.addMulti<float>("cpfcandlt_nhitpixelEndcapLayer2");
-  //Strip TIB
-  data.addMulti<float>("cpfcandlt_nhitstripTIBLayer1");
-  data.addMulti<float>("cpfcandlt_nhitstripTIBLayer2");
-  data.addMulti<float>("cpfcandlt_nhitstripTIBLayer3");
-  data.addMulti<float>("cpfcandlt_nhitstripTIBLayer4");
-  //Strip TID
-  data.addMulti<float>("cpfcandlt_nhitstripTIDLayer1");
-  data.addMulti<float>("cpfcandlt_nhitstripTIDLayer2");
-  data.addMulti<float>("cpfcandlt_nhitstripTIDLayer3");
-  //Strip TOB
-  data.addMulti<float>("cpfcandlt_nhitstripTOBLayer1");
-  data.addMulti<float>("cpfcandlt_nhitstripTOBLayer2");
-  data.addMulti<float>("cpfcandlt_nhitstripTOBLayer3");
-  data.addMulti<float>("cpfcandlt_nhitstripTOBLayer4");
-  data.addMulti<float>("cpfcandlt_nhitstripTOBLayer5");
-  data.addMulti<float>("cpfcandlt_nhitstripTOBLayer6");
-  //Strip TEC
-  data.addMulti<float>("cpfcandlt_nhitstripTECLayer1");
-  data.addMulti<float>("cpfcandlt_nhitstripTECLayer2");
-  data.addMulti<float>("cpfcandlt_nhitstripTECLayer3");
-  data.addMulti<float>("cpfcandlt_nhitstripTECLayer4");
-  data.addMulti<float>("cpfcandlt_nhitstripTECLayer5");
-  data.addMulti<float>("cpfcandlt_nhitstripTECLayer6");
-  data.addMulti<float>("cpfcandlt_nhitstripTECLayer7");
-  data.addMulti<float>("cpfcandlt_nhitstripTECLayer8");
-  data.addMulti<float>("cpfcandlt_nhitstripTECLayer9");
-  //Tracker all layers together
+  // //Tracker per layer
+  // //Pixel barrel 
+  // data.addMulti<float>("cpfcandlt_nhitpixelBarrelLayer1");
+  // data.addMulti<float>("cpfcandlt_nhitpixelBarrelLayer2");
+  // data.addMulti<float>("cpfcandlt_nhitpixelBarrelLayer3");
+  // data.addMulti<float>("cpfcandlt_nhitpixelBarrelLayer4");
+  // //Pixel Endcap 
+  // data.addMulti<float>("cpfcandlt_nhitpixelEndcapLayer1");
+  // data.addMulti<float>("cpfcandlt_nhitpixelEndcapLayer2");
+  // //Strip TIB
+  // data.addMulti<float>("cpfcandlt_nhitstripTIBLayer1");
+  // data.addMulti<float>("cpfcandlt_nhitstripTIBLayer2");
+  // data.addMulti<float>("cpfcandlt_nhitstripTIBLayer3");
+  // data.addMulti<float>("cpfcandlt_nhitstripTIBLayer4");
+  // //Strip TID
+  // data.addMulti<float>("cpfcandlt_nhitstripTIDLayer1");
+  // data.addMulti<float>("cpfcandlt_nhitstripTIDLayer2");
+  // data.addMulti<float>("cpfcandlt_nhitstripTIDLayer3");
+  // //Strip TOB
+  // data.addMulti<float>("cpfcandlt_nhitstripTOBLayer1");
+  // data.addMulti<float>("cpfcandlt_nhitstripTOBLayer2");
+  // data.addMulti<float>("cpfcandlt_nhitstripTOBLayer3");
+  // data.addMulti<float>("cpfcandlt_nhitstripTOBLayer4");
+  // data.addMulti<float>("cpfcandlt_nhitstripTOBLayer5");
+  // data.addMulti<float>("cpfcandlt_nhitstripTOBLayer6");
+  // //Strip TEC
+  // data.addMulti<float>("cpfcandlt_nhitstripTECLayer1");
+  // data.addMulti<float>("cpfcandlt_nhitstripTECLayer2");
+  // data.addMulti<float>("cpfcandlt_nhitstripTECLayer3");
+  // data.addMulti<float>("cpfcandlt_nhitstripTECLayer4");
+  // data.addMulti<float>("cpfcandlt_nhitstripTECLayer5");
+  // data.addMulti<float>("cpfcandlt_nhitstripTECLayer6");
+  // data.addMulti<float>("cpfcandlt_nhitstripTECLayer7");
+  // data.addMulti<float>("cpfcandlt_nhitstripTECLayer8");
+  // data.addMulti<float>("cpfcandlt_nhitstripTECLayer9");
+  // //Tracker all layers together
   // //Valid hits
   // data.addMulti<float>("cpfcandlt_numberOfValidHits"); 
   // data.addMulti<float>("cpfcandlt_numberOfValidTrackerHits"); 
@@ -433,41 +433,41 @@ bool PFCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
         //}
         //std::cout << std::endl;
       }
-      //Pixel Barrel 
-      data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer1", (trk->hitPattern().numberOfValidPixelBarrelHits()) ? catchInfs(cpfcandlt_nhitpixelBarrelLayer1, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer2", (trk->hitPattern().numberOfValidPixelBarrelHits()) ? catchInfs(cpfcandlt_nhitpixelBarrelLayer2, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer3", (trk->hitPattern().numberOfValidPixelBarrelHits()) ? catchInfs(cpfcandlt_nhitpixelBarrelLayer3, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer4", (trk->hitPattern().numberOfValidPixelBarrelHits()) ? catchInfs(cpfcandlt_nhitpixelBarrelLayer4, 0) : 0);
-      //Pixel Endcap 
-      data.fillMulti<float>("cpfcandlt_nhitpixelEndcapLayer1", (trk->hitPattern().numberOfValidPixelEndcapHits()) ? catchInfs(cpfcandlt_nhitpixelEndcapLayer1, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitpixelEndcapLayer2", (trk->hitPattern().numberOfValidPixelEndcapHits()) ? catchInfs(cpfcandlt_nhitpixelEndcapLayer2, 0) : 0);
-      //Strip TIB
-      data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer1", (trk->hitPattern().numberOfValidStripTIBHits()) ? catchInfs(cpfcandlt_nhitstripTIBLayer1, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer2", (trk->hitPattern().numberOfValidStripTIBHits()) ? catchInfs(cpfcandlt_nhitstripTIBLayer2, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer3", (trk->hitPattern().numberOfValidStripTIBHits()) ? catchInfs(cpfcandlt_nhitstripTIBLayer3, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer4", (trk->hitPattern().numberOfValidStripTIBHits()) ? catchInfs(cpfcandlt_nhitstripTIBLayer4, 0) : 0);
-      //Strip TID
-      data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer1", (trk->hitPattern().numberOfValidStripTIDHits()) ? catchInfs(cpfcandlt_nhitstripTIDLayer1, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer2", (trk->hitPattern().numberOfValidStripTIDHits()) ? catchInfs(cpfcandlt_nhitstripTIDLayer2, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer3", (trk->hitPattern().numberOfValidStripTIDHits()) ? catchInfs(cpfcandlt_nhitstripTIDLayer3, 0) : 0);
-      //Strip TOB
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer1", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer1, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer2", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer2, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer3", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer3, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer4", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer4, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer5", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer5, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer6", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer6, 0) : 0);
-      //Strip TEC
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer1", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer1, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer2", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer2, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer3", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer3, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer4", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer4, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer5", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer5, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer6", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer6, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer7", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer7, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer8", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer8, 0) : 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer9", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer9, 0) : 0);
-      //Tracker all layers together   
+      // //Pixel Barrel 
+      // data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer1", (trk->hitPattern().numberOfValidPixelBarrelHits()) ? catchInfs(cpfcandlt_nhitpixelBarrelLayer1, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer2", (trk->hitPattern().numberOfValidPixelBarrelHits()) ? catchInfs(cpfcandlt_nhitpixelBarrelLayer2, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer3", (trk->hitPattern().numberOfValidPixelBarrelHits()) ? catchInfs(cpfcandlt_nhitpixelBarrelLayer3, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer4", (trk->hitPattern().numberOfValidPixelBarrelHits()) ? catchInfs(cpfcandlt_nhitpixelBarrelLayer4, 0) : 0);
+      // //Pixel Endcap 
+      // data.fillMulti<float>("cpfcandlt_nhitpixelEndcapLayer1", (trk->hitPattern().numberOfValidPixelEndcapHits()) ? catchInfs(cpfcandlt_nhitpixelEndcapLayer1, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitpixelEndcapLayer2", (trk->hitPattern().numberOfValidPixelEndcapHits()) ? catchInfs(cpfcandlt_nhitpixelEndcapLayer2, 0) : 0);
+      // //Strip TIB
+      // data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer1", (trk->hitPattern().numberOfValidStripTIBHits()) ? catchInfs(cpfcandlt_nhitstripTIBLayer1, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer2", (trk->hitPattern().numberOfValidStripTIBHits()) ? catchInfs(cpfcandlt_nhitstripTIBLayer2, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer3", (trk->hitPattern().numberOfValidStripTIBHits()) ? catchInfs(cpfcandlt_nhitstripTIBLayer3, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer4", (trk->hitPattern().numberOfValidStripTIBHits()) ? catchInfs(cpfcandlt_nhitstripTIBLayer4, 0) : 0);
+      // //Strip TID
+      // data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer1", (trk->hitPattern().numberOfValidStripTIDHits()) ? catchInfs(cpfcandlt_nhitstripTIDLayer1, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer2", (trk->hitPattern().numberOfValidStripTIDHits()) ? catchInfs(cpfcandlt_nhitstripTIDLayer2, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer3", (trk->hitPattern().numberOfValidStripTIDHits()) ? catchInfs(cpfcandlt_nhitstripTIDLayer3, 0) : 0);
+      // //Strip TOB
+      // data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer1", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer1, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer2", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer2, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer3", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer3, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer4", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer4, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer5", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer5, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer6", (trk->hitPattern().numberOfValidStripTOBHits()) ? catchInfs(cpfcandlt_nhitstripTOBLayer6, 0) : 0);
+      // //Strip TEC
+      // data.fillMulti<float>("cpfcandlt_nhitstripTECLayer1", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer1, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTECLayer2", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer2, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTECLayer3", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer3, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTECLayer4", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer4, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTECLayer5", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer5, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTECLayer6", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer6, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTECLayer7", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer7, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTECLayer8", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer8, 0) : 0);
+      // data.fillMulti<float>("cpfcandlt_nhitstripTECLayer9", (trk->hitPattern().numberOfValidStripTECHits()) ? catchInfs(cpfcandlt_nhitstripTECLayer9, 0) : 0);
+      // //Tracker all layers together   
       // //Valid hits
       // data.fillMulti<float>("cpfcandlt_numberOfValidHits", (trk->hitPattern().numberOfValidHits()) ? catchInfs(trk->hitPattern().numberOfValidHits(), 0) : 0);
       // data.fillMulti<float>("cpfcandlt_numberOfValidTrackerHits", (trk->hitPattern().numberOfValidTrackerHits()) ? catchInfs(trk->hitPattern().numberOfValidTrackerHits(), 0) : 0);

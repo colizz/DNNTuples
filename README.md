@@ -2,12 +2,12 @@
 
 ## Setup
 ```bash
-cmsrel CMSSW_14_0_11
-cd CMSSW_14_0_11/src
+cmsrel CMSSW_15_0_0
+cd CMSSW_15_0_0/src
 cmsenv
 
 # clone this repo into "DeepNTuples" directory
-git clone git@github.com:colizz/DNNTuplesAK8.git DeepNTuples -b dev-Run3-hww
+git clone git@github.com:colizz/DNNTuples.git DeepNTuples -b dev-nanov15
 
 scram b -j8
 ```
