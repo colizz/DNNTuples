@@ -161,6 +161,7 @@ void ScoutFatJetCompleteFiller::book() {
   data.addMulti<float>("scoutpfcand_erel_log");
   data.addMulti<float>("scoutpfcand_erel");
   data.addMulti<float>("scoutpfcand_pt_log");
+  data.addMulti<float>("scoutpfcand_e_log");          // Added
 
   data.addMulti<float>("scoutpfcand_normchi2");
   data.addMulti<float>("scoutpfcand_lostInnerHits");
@@ -347,14 +348,15 @@ bool ScoutFatJetCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const J
       data.fillMulti<float>("scoutpfcand_isGamma", std::abs(reco_cand->pdgId()) == 22);
       data.fillMulti<float>("scoutpfcand_isNeutralHad", std::abs(reco_cand->pdgId()) == 130);
       data.fillMulti<float>("scoutpfcand_phirel", reco::deltaPhi(candP4, ajet));
-      data.fillMulti<float>("scoutpfcand_etarel", candP4.eta() - ajet.eta());
+      data.fillMulti<float>("scoutpfcand_etarel", etasign * (candP4.eta() - ajet.eta()));   // Edited
       data.fillMulti<float>("scoutpfcand_deltaR", reco::deltaR(candP4, ajet));
       data.fillMulti<float>("scoutpfcand_abseta", std::abs(candP4.eta()));
       data.fillMulti<float>("scoutpfcand_ptrel_log", std::log(candP4.pt() / ajet.pt()));
       data.fillMulti<float>("scoutpfcand_ptrel", candP4.pt() / ajet.pt());
       data.fillMulti<float>("scoutpfcand_erel_log", std::log(candP4.energy() / ajet.energy()));
-      data.fillMulti<float>("scoutpfcand_erel", etasign * candP4.energy() / ajet.energy());
+      data.fillMulti<float>("scoutpfcand_erel", candP4.energy() / ajet.energy());
       data.fillMulti<float>("scoutpfcand_pt_log", std::log(candP4.pt()));
+      data.fillMulti<float>("scoutpfcand_e_log", std::log(candP4.energy()));          // Added
 
       if ((*value_map_float_handles_["scoutingPFCandidate:normchi2"])[cand] > 900) {
         data.fillMulti<float>("scoutpfcand_normchi2", 0);
