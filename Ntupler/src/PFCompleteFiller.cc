@@ -504,39 +504,39 @@ bool PFCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
     }else{
       //Tracker per layer
       //Pixel barrel 
-      data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer1", 0);
-      data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer2", 0);
-      data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer3", 0);
-      data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer4", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer1", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer2", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer3", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitpixelBarrelLayer4", 0);
       //Pixel Endcap 
-      data.fillMulti<float>("cpfcandlt_nhitpixelEndcapLayer1", 0);
-      data.fillMulti<float>("cpfcandlt_nhitpixelEndcapLayer2", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitpixelEndcapLayer1", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitpixelEndcapLayer2", 0);
       //Strip TIB
-      data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer1", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer2", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer3", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer4", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer1", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer2", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer3", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTIBLayer4", 0);
       //Strip TID
-      data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer1", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer2", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer3", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer1", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer2", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTIDLayer3", 0);
       //Strip TOB
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer1", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer2", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer3", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer4", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer5", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer6", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer1", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer2", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer3", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer4", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer5", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTOBLayer6", 0);
       //Strip TEC
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer1", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer2", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer3", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer4", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer5", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer6", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer7", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer8", 0);
-      data.fillMulti<float>("cpfcandlt_nhitstripTECLayer9", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTECLayer1", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTECLayer2", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTECLayer3", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTECLayer4", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTECLayer5", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTECLayer6", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTECLayer7", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTECLayer8", 0);
+      //data.fillMulti<float>("cpfcandlt_nhitstripTECLayer9", 0);
       //Tracker all layers together
       // //Valid hits
       // data.fillMulti<float>("cpfcandlt_numberOfValidHits", 0); 
