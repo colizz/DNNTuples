@@ -46,8 +46,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.options = cms.untracked.PSet(
     allowUnscheduled=cms.untracked.bool(True),
-    wantSummary=cms.untracked.bool(False),
-    TryToContinue = cms.untracked.vstring('ProductNotFound')    # Added by yiyang
+    wantSummary=cms.untracked.bool(False)
 )
 
 print('Using output file ' + options.outputFile)
@@ -93,14 +92,9 @@ process.scoutingFatPFJetReclusterTask = cms.Task(
     scoutingFatPFJetReclusterEcfNbeta1, scoutingFatPFJetReclusterNjettiness, # substructure variables
     # scoutingFatPFJetReclusterTable
 )
-# 确保 matched (scoutingFatPFJetRecluster) 不是空的 Added by yiyang
-process.filteredScoutingFatPFJets = cms.EDFilter("CandViewCountFilter",
-    src = cms.InputTag("scoutingFatPFJetRecluster"),
-    minNumber = cms.uint32(1)
-)
 process.scoutingFatPFJetMatch = cms.EDProducer("JetMatcherDR",
     source = cms.InputTag("slimmedJetsAK8"),
-    matched = cms.InputTag("filteredScoutingFatPFJets")  # 使用筛选后的 jets
+    matched = cms.InputTag("scoutingFatPFJetRecluster")
 )
 process.scoutingFatPFJetReclusterTask.add(process.filteredScoutingFatPFJets)
 process.scoutingFatPFJetReclusterTask.add(process.scoutingFatPFJetMatch)
