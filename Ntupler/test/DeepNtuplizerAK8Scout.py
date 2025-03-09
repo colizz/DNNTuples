@@ -93,7 +93,7 @@ process.scoutingFatPFJetReclusterTask = cms.Task(
     # scoutingFatPFJetReclusterTable
 )
 # 确保 matched (scoutingFatPFJetRecluster) 不是空的 Added by yiyang
-process.filteredScoutingFatPFJets = cms.EDFilter("CandViewCountFilter",
+process.filteredScoutingFatPFJets = cms.EDFilter("SizeFilter",
     src = cms.InputTag("scoutingFatPFJetRecluster"),
     minNumber = cms.uint32(1)
 )
