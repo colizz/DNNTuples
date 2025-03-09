@@ -92,10 +92,16 @@ process.scoutingFatPFJetReclusterTask = cms.Task(
     scoutingFatPFJetReclusterEcfNbeta1, scoutingFatPFJetReclusterNjettiness, # substructure variables
     # scoutingFatPFJetReclusterTable
 )
+# 确保 matched (scoutingFatPFJetRecluster) 不是空的 Added by yiyang
+process.filteredScoutingFatPFJets = cms.EDFilter("PATCandViewCountFilter",
+    src = cms.InputTag("scoutingFatPFJetRecluster"),
+    minNumber = cms.uint32(1)
+)
 process.scoutingFatPFJetMatch = cms.EDProducer("JetMatcherDR",
     source = cms.InputTag("slimmedJetsAK8"),
-    matched = cms.InputTag("scoutingFatPFJetRecluster")
+    matched = cms.InputTag("filteredScoutingFatPFJets")  # 使用筛选后的 jets
 )
+process.scoutingFatPFJetReclusterTask.add(process.filteredScoutingFatPFJets)
 process.scoutingFatPFJetReclusterTask.add(process.scoutingFatPFJetMatch)
 
 ## ========== end of scouting AK8 jet reclustering task ========== ##
