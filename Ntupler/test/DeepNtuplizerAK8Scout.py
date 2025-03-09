@@ -46,7 +46,8 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.options = cms.untracked.PSet(
     allowUnscheduled=cms.untracked.bool(True),
-    wantSummary=cms.untracked.bool(False)
+    wantSummary=cms.untracked.bool(False),
+    TryToContinue = cms.untracked.vstring('ProductNotFound')    # Added by yiyang
 )
 
 print('Using output file ' + options.outputFile)
@@ -97,16 +98,11 @@ process.filteredScoutingFatPFJets = cms.EDFilter("CandViewCountFilter",
     src = cms.InputTag("scoutingFatPFJetRecluster"),
     minNumber = cms.uint32(1)
 )
-process.filteredFatPFJets = cms.EDFilter("CandViewCountFilter",
-    src = cms.InputTag("slimmedJetsAK8"),
-    minNumber = cms.uint32(1)
-)
 process.scoutingFatPFJetMatch = cms.EDProducer("JetMatcherDR",
-    source = cms.InputTag("filteredFatPFJets"),
+    source = cms.InputTag("slimmedJetsAK8"),
     matched = cms.InputTag("filteredScoutingFatPFJets")  # 使用筛选后的 jets
 )
 process.scoutingFatPFJetReclusterTask.add(process.filteredScoutingFatPFJets)
-process.scoutingFatPFJetReclusterTask.add(process.filteredFatPFJets)
 process.scoutingFatPFJetReclusterTask.add(process.scoutingFatPFJetMatch)
 
 ## ========== end of scouting AK8 jet reclustering task ========== ##
