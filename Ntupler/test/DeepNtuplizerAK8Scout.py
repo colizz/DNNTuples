@@ -92,11 +92,10 @@ process.scoutingFatPFJetReclusterTask = cms.Task(
     scoutingFatPFJetReclusterEcfNbeta1, scoutingFatPFJetReclusterNjettiness, # substructure variables
     # scoutingFatPFJetReclusterTable
 )
-process.scoutingFatPFJetMatch = cms.EDProducer("JetMatcherDR",
+process.scoutingFatPFJetMatch = cms.EDProducer("JetMatcherDRAllowEmpty",
     source = cms.InputTag("slimmedJetsAK8"),
     matched = cms.InputTag("scoutingFatPFJetRecluster")
 )
-process.scoutingFatPFJetReclusterTask.add(process.filteredScoutingFatPFJets)
 process.scoutingFatPFJetReclusterTask.add(process.scoutingFatPFJetMatch)
 
 ## ========== end of scouting AK8 jet reclustering task ========== ##

@@ -178,6 +178,10 @@ void ScoutFatJetCompleteFiller::book() {
 
 bool ScoutFatJetCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& jet_helper) {
 
+  if (jet_helper.getScoutJet() == nullptr) { // this is the case when no scouting jet exists in an event, so ScoutJet is not set
+    return false;
+  }
+
   const edm::RefToBase<reco::Jet>& scoutjetRef = *jet_helper.getScoutJet();
 
   if (scoutjetRef.isNonnull()) {

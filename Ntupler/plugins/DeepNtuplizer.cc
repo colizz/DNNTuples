@@ -153,7 +153,9 @@ void DeepNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     jet_helper.setGenjetNoNu((*genJetNoNuMatchHandle)[jets->refAt(idx)]);
     jet_helper.setGenjetNoNuSoftDrop((*genJetNoNuSoftDropMatchHandle)[jets->refAt(idx)]);
     if (useScoutJet_) {
-      jet_helper.setScoutJet((*scoutJetMatchHandle)[jets->refAt(idx)]);
+      if (!scoutJetMatchHandle->empty()) {
+        jet_helper.setScoutJet((*scoutJetMatchHandle)[jets->refAt(idx)]);
+      }
     }
 
     for (auto *m : modules_){
