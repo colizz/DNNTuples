@@ -1322,6 +1322,77 @@ void FatJetMatching::higgs_WHorZH_label(const pat::Jet* jet, std::vector<const r
   throw std::logic_error("[FatJetMatching::higgs_WHorZH_label] Unmatched label: " + matched_parts_str);
 }
 
+void FatJetMatching::higgs_aa_label(const pat::Jet* jet, std::vector<const reco::GenParticle*>& hVV_daughters, double distR)
+{
+  if (hVV_daughters.size() != 2) {
+    if (debug_) {
+      std::cout << "Invalid number of Higgs daughters (" << hVV_daughters.size() 
+                << "), expected 2 photons." << std::endl;
+    }
+    return;
+  }
+
+  int daus_matched[2] = {0, 0};
+  
+  // Check photon daughters and matching
+  for (int i = 0; i < 2; ++i) {
+    const reco::GenParticle* dau = hVV_daughters.at(i);
+    
+    // Verify photon PDG ID
+    if (std::abs(dau->pdgId()) != ParticleID::p_photon) {
+      if (debug_) {
+        std::cout << "Daughter " << i << " is not a photon (PDG ID: " 
+                  << dau->pdgId() << ")" << std::endl;
+      }
+      return;
+    }
+
+    // Calculate deltaR and check matching
+    double deltaR = reco::deltaR(jet->p4(), dau->p4());
+    if (deltaR < distR) {
+      daus_matched[i] = 1;
+      getResult().particles.push_back(dau);
+    }
+
+    if (debug_) {
+      std::cout << "Photon " << i << ":\n"
+                << "  PDG ID: " << dau->pdgId() << "\n"
+                << "  deltaR: " << deltaR << "\n"
+                << "  Matched: " << daus_matched[i] << std::endl;
+    }
+  }
+
+  // Require both photons to be matched
+  if (daus_matched[0] + daus_matched[1] != 2) {
+    if (debug_) {
+      std::cout << "Matched " << daus_matched[0] + daus_matched[1] 
+                << " photons (required 2)" << std::endl;
+    }
+    return;
+  }
+
+  // Generate label based on matched particles
+  std::map<std::vector<std::string>, std::string> acceptable_strs_map = {
+    {{"aa"}, "H_aa"}
+  };
+
+  std::string matched_parts_str = "aa";
+
+  for (const auto& [patterns, label] : acceptable_strs_map) {
+    for (const auto& pattern : patterns) {
+      if (matched_parts_str == pattern) {
+        getResult().label = label;
+        if (debug_) {
+          std::cout << "Assigned label: " << label << std::endl;
+        }
+        return;
+      }
+    }
+  }
+
+  throw std::logic_error("[FatJetMatching::higgs_aa_label] Unmatched label: " + matched_parts_str);
+}
+
 void FatJetMatching::qcd_label(const pat::Jet* jet, const reco::GenParticleCollection& genParticles, double distR)
 {
   const reco::GenParticle *parton = nullptr;
