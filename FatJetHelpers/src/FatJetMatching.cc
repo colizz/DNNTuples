@@ -1393,9 +1393,7 @@ void FatJetMatching::higgs_aa_label(const pat::Jet* jet, std::vector<const reco:
   throw std::logic_error("[FatJetMatching::higgs_aa_label] Unmatched label: " + matched_parts_str);
 }
 
-void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet, 
-                                      std::vector<const reco::GenParticle*>& diphoton_daughters,
-                                      double distR)
+void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet, std::vector<const reco::GenParticle*>& diphoton_daughters, double distR)
 {
   enum DiphotonSource {GG_SOURCE, QQ_SOURCE, UNKNOWN_SOURCE};
 
@@ -1480,9 +1478,7 @@ void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet,
   getResult().label = source_map.at(source_str);
 }
 
-void FatJetMatching::photon_jet_label(const pat::Jet* jet,
-                                    std::vector<const reco::GenParticle*>& photon_jet_daughters,
-                                    double distR)
+void FatJetMatching::photon_jet_label(const pat::Jet* jet, std::vector<const reco::GenParticle*>& photon_jet_daughters, double distR)
 {
 
   if (photon_jet_daughters.size() < 2) {
