@@ -138,6 +138,30 @@ const reco::GenParticle* FatJetMatching::getFinal(const reco::GenParticle* parti
   return final;
 }
 
+const reco::GenParticle* FatJetMatching::getFinalMother(const reco::GenParticle* particle) {
+  if (!particle) return nullptr;
+  
+  const reco::GenParticle* current = particle;
+  const int original_pdgid = particle->pdgId();
+  int max_depth = 10; // 防止无限循环
+  
+  while (max_depth-- > 0) {
+    if (current->numberOfMothers() == 0) break;
+    
+    const reco::Candidate* mother = current->mother();
+    if (!mother) break;
+    
+    const auto* genMother = dynamic_cast<const reco::GenParticle*>(mother);
+    if (!genMother) break;
+    
+    if (std::abs(genMother->pdgId()) != std::abs(original_pdgid)) {
+      return genMother;
+    }
+    current = genMother;
+  }
+  return current;
+}
+
 bool FatJetMatching::isHadronic(const reco::GenParticle* particle) const {
   // particle needs to be the final version before decay
   if (!particle) throw std::invalid_argument("[FatJetMatching::isHadronic()] Null particle!");
@@ -1348,7 +1372,7 @@ void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet, std::vector<const r
   DiphotonSource source = UNKNOWN_SOURCE;
   std::vector<const reco::GenParticle*> mothers;
   for (const auto& dau : diphoton_daughters) {
-    if (std::abs(dau->pdgId()) != ParticleID::p_photon) {
+    if (std::abs(dau->pdgId()) != ParticleID::p_gamma) {
       if (debug_) {
         std::cout << "[diphoton_bkg_label] Non-photon daughter found: " 
                   << dau->pdgId() << "\n";
@@ -1357,12 +1381,14 @@ void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet, std::vector<const r
     }
     
     // exclude Higgs source
-    if (const auto* mother = dau->mother()) {
+    const auto* mother = getFinalMother(dau);
+    if (mother) {
       if (std::abs(mother->pdgId()) == ParticleID::p_H0 || 
           std::abs(mother->pdgId()) == ParticleID::p_h0) {
         return;
       }
-      mothers.push_back(mother);
+      const reco::GenParticle* genMother = static_cast<const reco::GenParticle*>(mother);
+      mothers.push_back(genMother);
     }
   }
 
@@ -1371,7 +1397,7 @@ void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet, std::vector<const r
     if (std::abs(mothers[0]->pdgId()) == ParticleID::p_g && 
         std::abs(mothers[1]->pdgId()) == ParticleID::p_g) {
       source = GG_SOURCE;
-    } else if ((std::abs(mothers[0]->pdgId()) <= ParticleID::p_b && 
+    } else if (std::abs(mothers[0]->pdgId()) <= ParticleID::p_b && 
                (std::abs(mothers[1]->pdgId()) <= ParticleID::p_b)) {
       source = QQ_SOURCE;
     }
@@ -1402,9 +1428,9 @@ void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet, std::vector<const r
   }
 
   const std::map<std::string, std::string> source_map = {
-    {"GG_SOURCE", "Bkg_ggAA"},
-    {"QQ_SOURCE", "Bkg_qqAA"},
-    {"UNKNOWN_SOURCE", "Bkg_AA"}
+    {"GG_SOURCE", "QCD_ggAA"},
+    {"QQ_SOURCE", "QCD_qqAA"},
+    {"UNKNOWN_SOURCE", "QCD_AA"}
   };
 
   std::string source_str = "UNKNOWN_SOURCE";
@@ -1420,7 +1446,7 @@ void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet, std::vector<const r
 void FatJetMatching::photon_jet_label(const pat::Jet* jet, std::vector<const reco::GenParticle*>& photon_jet_daughters, double distR)
 {
 
-  if (photon_jet_daughters.size() < 2) {
+  if (photon_jet_daughters.size() != 1) {
     if (debug_) {
       std::cout << "[photon_jet_label] Insufficient daughters: " 
                 << photon_jet_daughters.size() << "\n";
@@ -1429,56 +1455,46 @@ void FatJetMatching::photon_jet_label(const pat::Jet* jet, std::vector<const rec
   }
 
   const reco::GenParticle* photon = nullptr;
-  const reco::GenParticle* parton = nullptr;
   
   for (const auto& dau : photon_jet_daughters) {
-    if (std::abs(dau->pdgId()) == ParticleID::p_photon) {
+    if (std::abs(dau->pdgId()) == ParticleID::p_gamma) {
       photon = dau;
-    } else if (std::abs(dau->pdgId()) <= ParticleID::p_b || 
-               std::abs(dau->pdgId()) == ParticleID::p_g) {
-      parton = dau;
     }
   }
 
-  if (!photon || !parton) {
+  if (!photon) {
     if (debug_) {
       std::cout << "[photon_jet_label] Missing components: "
-                << "photon=" << (photon?"Y":"N")
-                << " parton=" << (parton?"Y":"N") << "\n";
+                << "photon=" << (photon?"Y":"N") << "\n";
     }
     return;
   }
 
   // Match check
   const double photon_dR = reco::deltaR(jet->p4(), photon->p4());
-  const double parton_dR = reco::deltaR(jet->p4(), parton->p4());
   
   bool photon_matched = photon_dR < distR;
-  bool parton_matched = parton_dR < distR;
 
   if (debug_) {
     std::cout << "Photon matching:\n"
               << "  PDG: " << photon->pdgId() << "\n"
-              << "  dR: " << photon_dR << " | Matched: " << photon_matched << "\n"
-              << "Parton (" << parton->pdgId() << ") matching:\n"
-              << "  dR: " << parton_dR << " | Matched: " << parton_matched << "\n";
+              << "  dR: " << photon_dR << " | Matched: " << photon_matched << "\n";
   }
 
-  if (!photon_matched || !parton_matched) {
+  if (!photon_matched) {
     if (debug_) {
       std::cout << "[photon_jet_label] Matching failed: "
-                << "photon=" << photon_matched
-                << " parton=" << parton_matched << "\n";
+                << "photon=" << photon_matched;
     }
     return;
   }
 
   getResult().particles.push_back(photon);
-  getResult().particles.push_back(parton);
 
   // Find Source
   std::string process_type = "Generic";
-  if (const auto* mother = photon->mother()) {
+  const auto* mother = getFinalMother(photon);
+  if (mother) 
     if (std::abs(mother->pdgId()) == ParticleID::p_g) {
       process_type = "GG";
     } else if (std::abs(mother->pdgId()) <= ParticleID::p_b) {
@@ -1488,9 +1504,9 @@ void FatJetMatching::photon_jet_label(const pat::Jet* jet, std::vector<const rec
 
   // Generate label
   const std::map<std::string, std::string> type_map = {
-    {"GG", "Bkg_ggAG"},
-    {"QG", "Bkg_qgAG"},
-    {"Generic", "Bkg_AJet"}
+    {"GG", "QCD_ggAG"},
+    {"QG", "QCD_qgAG"},
+    {"Generic", "QCD_AJet"}
   };
 
   getResult().label = type_map.at(process_type);
@@ -1518,19 +1534,46 @@ void FatJetMatching::qcd_label(const pat::Jet* jet, const reco::GenParticleColle
     }
   }
 
-  auto n_bHadrons = jet->jetFlavourInfo().getbHadrons().size();
-  auto n_cHadrons = jet->jetFlavourInfo().getcHadrons().size();
+  std::vector<const reco::GenParticle*> matched_photons;
+  for (const auto& gp : genParticles) {
+    if (std::abs(gp.pdgId()) == ParticleID::p_gamma && gp.status() == 1) {
+      const double dr = reco::deltaR(gp.eta(), gp.phi(), jet->eta(), jet->phi());
+      if (dr < distR) {
+        matched_photons.push_back(&gp);
+      }
+    }
+  }
+  
+  if (matched_photons.size() == 2) {
+    std::vector<const reco::GenParticle*> diphoton_daughters;
+    diphoton_daughters.reserve(2);
+    diphoton_daughters.push_back(matched_photons[0]);
+    diphoton_daughters.push_back(matched_photons[1]);
+    diphoton_bkg_label(jet, diphoton_daughters, distR);
+  }
 
-  if (n_bHadrons>=2) {
-    getResult().label = "QCD_bb";
-  }else if (n_bHadrons==1){
-    getResult().label = "QCD_b";
-  }else if (n_cHadrons>=2){
-    getResult().label = "QCD_cc";
-  }else if (n_cHadrons==1){
-    getResult().label = "QCD_c";
-  }else{
-    getResult().label = "QCD_others";
+  else if (matched_photons.size() == 1) {
+    std::vector<const reco::GenParticle*> photon_daughter;
+    photon_daughter.reserve(1);
+    photon_daughter.push_back(matched_photons[0]);
+    photon_jet_label(jet, photon_daughter, distR);
+  }
+
+  else{
+    auto n_bHadrons = jet->jetFlavourInfo().getbHadrons().size();
+    auto n_cHadrons = jet->jetFlavourInfo().getcHadrons().size();
+
+    if (n_bHadrons>=2) {
+      getResult().label = "QCD_bb";
+    }else if (n_bHadrons==1){
+      getResult().label = "QCD_b";
+    }else if (n_cHadrons>=2){
+      getResult().label = "QCD_cc";
+    }else if (n_cHadrons==1){
+      getResult().label = "QCD_c";
+    }else{
+      getResult().label = "QCD_others";
+    }
   }
 
 }
