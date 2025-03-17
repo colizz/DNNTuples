@@ -74,7 +74,7 @@ private:
     "bbbb", "bbcc", "bbss", "bbqq", "cccc", "ccss", "ccqq", "ssss", "ssqq", "qqqq",
     "bbb", "bbc", "bbs", "bbq", "ccb", "ccc", "ccs", "ccq", "ssb", "ssc", "sss", "ssq", "qqb", "qqc", "qqs", "qqq",
     "bbee", "bbmm", "bbe", "bbm", "bee", "bmm", "bbtauhtaue", "bbtauhtaum", "bbtauhtauh", "btauhtaue", "btauhtaum", "btauhtauh", "ccee", "ccmm", "cce", "ccm", "cee", "cmm", "cctauhtaue", "cctauhtaum", "cctauhtauh", "ctauhtaue", "ctauhtaum", "ctauhtauh", "ssee", "ssmm", "sse", "ssm", "see", "smm", "sstauhtaue", "sstauhtaum", "sstauhtauh", "stauhtaue", "stauhtaum", "stauhtauh", "qqee", "qqmm", "qqe", "qqm", "qee", "qmm", "qqtauhtaue", "qqtauhtaum", "qqtauhtauh", "qtauhtaue", "qtauhtaum", "qtauhtauh"};
-  std::vector<std::string> labelQCD_ = {"bb", "cc", "b", "c", "others"};
+  std::vector<std::string> labelQCD_ = {"bb", "cc", "b", "c", "others", "ggAA", "qqAA", "AA", "ggAG", "qgAG", "AJet"};
   std::vector<std::string> labelH2pExt_ = {
     "btaue", "btaum", "btauh", "aa", "x5", "x6", "x7", "x8", "x9", "x10",
     "x11", "x12", "x13", "x14", "x15", "x16", "x17", "x18", "x19", "x20",
