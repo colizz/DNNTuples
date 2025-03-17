@@ -68,6 +68,8 @@ private:
   void higgs_WW_label(const pat::Jet* jet, std::vector<const reco::GenParticle*>& hVV_daughters, double distR);
   void higgs_ZZ_label(const pat::Jet* jet, std::vector<const reco::GenParticle*>& hVV_daughters, double distR);
   void higgs_WHorZH_label(const pat::Jet* jet, std::vector<const reco::GenParticle*>& hVV_daughters, double distR);
+  void diphoton_bkg_label(const pat::Jet* jet, std::vector<const reco::GenParticle*>& diphoton_daughters, double distR);
+  void photon_jet_label(const pat::Jet* jet, std::vector<const reco::GenParticle*>& photon_jet_daughters, double distR);
   void qcd_label(const pat::Jet *jet, const reco::GenParticleCollection& genParticles, double distR);
 
 
@@ -75,6 +77,7 @@ private:
   void printGenInfoHeader() const;
   void printGenParticleInfo(const reco::GenParticle* genParticle, const int idx) const;
   const reco::GenParticle* getFinal(const reco::GenParticle* particle);
+  const reco::GenParticle* getFinalMother(const reco::GenParticle* particle);
   bool isHadronic(const reco::GenParticle* particle) const;
   bool isNeutrino(const reco::GenParticle* particle) const;
   std::vector<const reco::GenParticle*> getDaughterQuarks(const reco::GenParticle* particle);
