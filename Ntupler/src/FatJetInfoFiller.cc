@@ -118,7 +118,11 @@ void FatJetInfoFiller::book() {
   data.add<float>("fj_genparts_phi", 0);
   data.add<float>("fj_genparts_mass", 0);
   data.add<float>("fj_genpart1_pid", 0);
+  data.add<float>("fj_genpart1_pt", 0);
+  data.add<float>("fj_genpart1_deltaR", 999);
   data.add<float>("fj_genpart2_pid", 0);
+  data.add<float>("fj_genpart2_pt", 0);
+  data.add<float>("fj_genpart2_deltaR", 999);
   data.add<float>("fj_genpart3_pid", 0);
   data.add<float>("fj_genpart4_pid", 0);
 
