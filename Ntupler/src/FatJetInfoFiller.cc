@@ -342,7 +342,11 @@ bool FatJetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
   data.fill<float>("fj_genparts_phi", sumP4.phi());
   data.fill<float>("fj_genparts_mass", sumP4.mass());
   data.fill<float>("fj_genpart1_pid", parts_size > 0 ? parts[0]->pdgId() : 0);
+  data.fill<float>("fj_genpart1_pt", parts_size > 0 ? parts[0]->pt() : -999);
+  data.fill<float>("fj_genpart1_deltaR", parts_size > 0 ? reco::deltaR(jet, parts[0]->p4()) : 999);
   data.fill<float>("fj_genpart2_pid", parts_size > 1 ? parts[1]->pdgId() : 0);
+  data.fill<float>("fj_genpart2_pt", parts_size > 1 ? parts[1]->pt() : -999);
+  data.fill<float>("fj_genpart2_deltaR", parts_size > 1 ? reco::deltaR(jet, parts[1]->p4()) : 999);
   data.fill<float>("fj_genpart3_pid", parts_size > 2 ? parts[2]->pdgId() : 0);
   data.fill<float>("fj_genpart4_pid", parts_size > 3 ? parts[3]->pdgId() : 0);
 
