@@ -1358,7 +1358,7 @@ void FatJetMatching::higgs_WHorZH_label(const pat::Jet* jet, std::vector<const r
 
 void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet, std::vector<const reco::GenParticle*>& diphoton_daughters, double distR)
 {
-  enum DiphotonSource {GG_SOURCE, QQ_SOURCE, UNKNOWN_SOURCE};
+  enum DiphotonSource {QQ_SOURCE, Q_SOURCE, UNKNOWN_SOURCE};
 
   if (diphoton_daughters.size() != 2) {
     if (debug_) {
@@ -1394,12 +1394,23 @@ void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet, std::vector<const r
 
   // Find source
   if (mothers.size() == 2) {
-    if (std::abs(mothers[0]->pdgId()) == ParticleID::p_g && 
-        std::abs(mothers[1]->pdgId()) == ParticleID::p_g) {
-      source = GG_SOURCE;
-    } else if (std::abs(mothers[0]->pdgId()) <= ParticleID::p_b && 
-               (std::abs(mothers[1]->pdgId()) <= ParticleID::p_b)) {
-      source = QQ_SOURCE;
+    // Any of them are prompt
+    if ((std::abs(mothers[0]->pdgId()) == ParticleID::p_g || 
+        std::abs(mothers[0]->pdgId()) <= ParticleID::p_b) || 
+        (std::abs(mothers[1]->pdgId()) == ParticleID::p_g || 
+        std::abs(mothers[1]->pdgId()) <= ParticleID::p_b)) {
+      
+      // Both of them are prompt
+      if ((std::abs(mothers[0]->pdgId()) == ParticleID::p_g || 
+          std::abs(mothers[0]->pdgId()) <= ParticleID::p_b) && 
+          (std::abs(mothers[1]->pdgId()) == ParticleID::p_g || 
+          std::abs(mothers[1]->pdgId()) <= ParticleID::p_b)) {
+        source = QQ_SOURCE;
+          }
+      // One of them are prompt
+      else {
+        source = Q_SOURCE;
+      }
     }
   }
 
@@ -1428,15 +1439,15 @@ void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet, std::vector<const r
   }
 
   const std::map<std::string, std::string> source_map = {
-    {"GG_SOURCE", "QCD_ggAA"},
-    {"QQ_SOURCE", "QCD_qqAA"},
-    {"UNKNOWN_SOURCE", "QCD_AA"}
+    {"QQ_SOURCE", "p_p"},
+    {"Q_SOURCE", "p_Np"},
+    {"UNKNOWN_SOURCE", "Np_Np"}
   };
 
   std::string source_str = "UNKNOWN_SOURCE";
   switch (source) {
-    case GG_SOURCE: source_str = "GG_SOURCE"; break;
     case QQ_SOURCE: source_str = "QQ_SOURCE"; break;
+    case Q_SOURCE: source_str = "Q_SOURCE"; break;
     default: break;
   }
 
@@ -1494,19 +1505,16 @@ void FatJetMatching::photon_jet_label(const pat::Jet* jet, std::vector<const rec
   // Find Source
   std::string process_type = "Generic";
   const auto* mother = getFinalMother(photon);
-  if (mother) 
-    if (std::abs(mother->pdgId()) == ParticleID::p_g) {
-      process_type = "GG";
-    } else if (std::abs(mother->pdgId()) <= ParticleID::p_b) {
+  if (mother) {
+    if ((std::abs(mother->pdgId()) == ParticleID::p_g) || (std::abs(mother->pdgId()) <= ParticleID::p_b)) {
       process_type = "QG";
     }
   }
 
   // Generate label
   const std::map<std::string, std::string> type_map = {
-    {"GG", "QCD_ggAG"},
-    {"QG", "QCD_qgAG"},
-    {"Generic", "QCD_AJet"}
+    {"QG", "prompt"},
+    {"Generic", "Non_prompt"}
   };
 
   getResult().label = type_map.at(process_type);
