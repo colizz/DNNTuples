@@ -1383,10 +1383,10 @@ void FatJetMatching::diphoton_bkg_label(const pat::Jet* jet, std::vector<const r
     // exclude Higgs source
     const auto* mother = getFinalMother(dau);
     if (mother) {
-      if (std::abs(mother->pdgId()) == ParticleID::p_H0 || 
-          std::abs(mother->pdgId()) == ParticleID::p_h0) {
-        return;
-      }
+      // if (std::abs(mother->pdgId()) == ParticleID::p_H0 || 
+      //     std::abs(mother->pdgId()) == ParticleID::p_h0) {
+      //   return;
+      // }
       const reco::GenParticle* genMother = static_cast<const reco::GenParticle*>(mother);
       mothers.push_back(genMother);
     }
@@ -1558,6 +1558,7 @@ void FatJetMatching::qcd_label(const pat::Jet* jet, const reco::GenParticleColle
     diphoton_daughters.push_back(matched_photons[0]);
     diphoton_daughters.push_back(matched_photons[1]);
     diphoton_bkg_label(jet, diphoton_daughters, distR);
+    return;
   }
 
   else if (matched_photons.size() == 1) {
@@ -1565,23 +1566,23 @@ void FatJetMatching::qcd_label(const pat::Jet* jet, const reco::GenParticleColle
     photon_daughter.reserve(1);
     photon_daughter.push_back(matched_photons[0]);
     photon_jet_label(jet, photon_daughter, distR);
+    return;
   }
 
-  else{
-    auto n_bHadrons = jet->jetFlavourInfo().getbHadrons().size();
-    auto n_cHadrons = jet->jetFlavourInfo().getcHadrons().size();
+  
+  auto n_bHadrons = jet->jetFlavourInfo().getbHadrons().size();
+  auto n_cHadrons = jet->jetFlavourInfo().getcHadrons().size();
 
-    if (n_bHadrons>=2) {
-      getResult().label = "QCD_bb";
-    }else if (n_bHadrons==1){
-      getResult().label = "QCD_b";
-    }else if (n_cHadrons>=2){
-      getResult().label = "QCD_cc";
-    }else if (n_cHadrons==1){
-      getResult().label = "QCD_c";
-    }else{
-      getResult().label = "QCD_others";
-    }
+  if (n_bHadrons>=2) {
+    getResult().label = "QCD_bb";
+  }else if (n_bHadrons==1){
+    getResult().label = "QCD_b";
+  }else if (n_cHadrons>=2){
+    getResult().label = "QCD_cc";
+  }else if (n_cHadrons==1){
+    getResult().label = "QCD_c";
+  }else{
+    getResult().label = "QCD_others";
   }
 
 }
