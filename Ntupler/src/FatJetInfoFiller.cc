@@ -55,9 +55,9 @@ void FatJetInfoFiller::book() {
       for (auto& l: labelHZZ_)  labels_.push_back("H_ZxZx_" + l);
       for (auto& l: labelHZZ_)  labels_.push_back("H_ZxZxStar_" + l);
       for (auto& l: labelQCD_)  labels_.push_back("QCD_" + l);
-      for (auto& l: labelHaaBKG_)  labels_.push_back("" + l);
       for (auto& l: labelH2pExt_) labels_.push_back("Hext_" + l);
       for (auto& l: labelHHVExt_) labels_.push_back("H_HVext_" + l);
+      for (auto& l: labelHaaBKG_)  labels_.push_back("" + l);
     } else {
       for (auto& l: labelTop_)  labels_.push_back("Top_" + l);
       for (auto& l: labelH2p_)  labels_.push_back("H_" + l);
