@@ -202,13 +202,13 @@ void PFCompleteFiller::book() {
 bool PFCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& jet_helper) {
 
   std::vector<reco::CandidatePtr> cpfPtrs, npfPtrs;
-  std::map<reco::CandidatePtr::key_type, bool> isLostTrackMap;
+  std::map<reco::CandidatePtr, bool> isLostTrackMap;
   const auto& pfCands = jet_helper.getJetConstituents();
   int n_cpfcands = 0, n_npfcands = 0, n_lts = 0;
   for (auto& cand : pfCands){
     if (cand->charge() != 0) {
       cpfPtrs.push_back(cand);
-      isLostTrackMap[cand.key()] = false;
+      isLostTrackMap[cand] = false;
       n_cpfcands++;
     }else {
       npfPtrs.push_back(cand);
@@ -220,7 +220,7 @@ bool PFCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
     auto cand = LTs->ptrAt(i);
     if (reco::deltaR(*cand, jet) < jetR_) {
       cpfPtrs.push_back(cand);
-      isLostTrackMap[cand.key()] = true;
+      isLostTrackMap[cand] = true;
       n_lts++;
     }
   }
@@ -253,7 +253,7 @@ bool PFCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
     // data.fillMulti<float>("cpfcandlt_deltaR", reco::deltaR(*packed_cand, jet));
     data.fillMulti<float>("cpfcandlt_abseta", std::abs(packed_cand->eta()));
 
-    data.fillMulti<float>("cpfcandlt_puppiw", !isLostTrackMap[cand.key()] ? jet_helper.getPuppiWeight(cand) : 0);
+    data.fillMulti<float>("cpfcandlt_puppiw", !isLostTrackMap[cand] ? jet_helper.getPuppiWeight(cand) : 0);
 
     double minDRin = 2.*jetR_;
     for (const auto &sv : *SVs){
@@ -273,7 +273,7 @@ bool PFCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
     data.fillMulti<float>("cpfcandlt_isEl", std::abs(packed_cand->pdgId())==11);
     data.fillMulti<float>("cpfcandlt_isMu", std::abs(packed_cand->pdgId())==13);
     data.fillMulti<float>("cpfcandlt_isChargedHad", std::abs(packed_cand->pdgId())==211);
-    data.fillMulti<float>("cpfcandlt_isLostTrack", isLostTrackMap[cand.key()]);
+    data.fillMulti<float>("cpfcandlt_isLostTrack", isLostTrackMap[cand]);
 
     // for neutral
     float hcal_fraction = 0.;
