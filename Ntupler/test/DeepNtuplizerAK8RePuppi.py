@@ -88,6 +88,20 @@ process = puppiJetMETReclusterFromMiniAOD(
     process, runOnMC=True, useExistingWeights=False, reclusterAK4MET=True, reclusterAK8=True,
 )
 
+from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask, addToProcessAndTask
+patTask = getPatAlgosToolsTask(process)
+
+# update packedPFCandidates with new puppi weights
+# -> packedPFCandidatesRePuppi should be used as input for the DeepNtuplizer
+addToProcessAndTask("packedPFCandidatesRePuppi", cms.EDProducer("PATPackedCandidateUpdater",
+        src = cms.InputTag("packedPFCandidates", processName=cms.InputTag.skipCurrentProcess()),
+        updatePuppiWeights = cms.bool(True),
+        puppiWeight = cms.InputTag("packedpuppi"),
+        puppiWeightNoLep = cms.InputTag("packedpuppiNoLep"),
+    ),
+    process, patTask
+)
+
 # from dnntuple v9: infer the new tagger so as to store the hidden layer scores in a special branch jet_custom_discs
 btagDiscriminatorsCustomSaveAsCompact = []
 btagDiscriminatorsCustomSaveAsSeparate = []
@@ -123,9 +137,10 @@ if doCustomTaggerInference:
     )
 
 srcJets = cms.InputTag('slimmedJetsAK8')
+srcPFCands = cms.InputTag('packedPFCandidatesRePuppi')
 # ---------------------------------------------------------
-from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask, addToProcessAndTask
-patTask = getPatAlgosToolsTask(process)
+# from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask, addToProcessAndTask
+# patTask = getPatAlgosToolsTask(process)
 
 from RecoJets.JetProducers.ak8GenJets_cfi import ak8GenJets
 from RecoJets.Configuration.GenJetParticles_cff import genParticlesForJetsNoNu
@@ -196,6 +211,7 @@ process.genJetTask = cms.Task(
 # DeepNtuplizer
 process.load("DeepNTuples.Ntupler.DeepNtuplizer_cfi")
 process.deepntuplizer.jets = srcJets
+process.deepntuplizer.pfcands = srcPFCands
 process.deepntuplizer.useReclusteredJets = useReclusteredJets
 
 from RecoBTag.ONNXRuntime.pfParticleNet_cff import _pfParticleNetJetTagsAll as pfParticleNetJetTagsAll

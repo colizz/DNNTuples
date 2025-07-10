@@ -44,7 +44,9 @@ void JetHelper::initializeConstituents(const edm::Handle<reco::CandidateView> &p
       // add all daughters
       for (unsigned k=0; k<sj->numberOfDaughters(); ++k){
         const auto& candPtr = sj->daughterPtr(k);
-        const auto *cand = dynamic_cast<const pat::PackedCandidate*>(&(*candPtr));
+        // get the cand within the specified pfcands handle that match the jet's daughther pfcand, in order to get the correct puppi weight
+        const auto& newCandPtr = pfcands->ptrAt(candPtr.key());
+        const auto *cand = dynamic_cast<const pat::PackedCandidate*>(&(*newCandPtr));
         if (cand->puppiWeight() < 0.01) continue; // [94X] ignore particles w/ extremely low puppi weights
         // Here we get the original PackedCandidate as stored in MiniAOD (i.e., not puppi weighted)
         // https://github.com/cms-sw/cmssw/pull/28035
@@ -54,7 +56,9 @@ void JetHelper::initializeConstituents(const edm::Handle<reco::CandidateView> &p
       }
     }else{
       const auto& candPtr = dauPtr;
-      const auto *cand = dynamic_cast<const pat::PackedCandidate*>(&(*candPtr));
+      // get the cand within the specified pfcands handle that match the jet's daughther pfcand, in order to get the correct puppi weight
+      const auto& newCandPtr = pfcands->ptrAt(candPtr.key());
+      const auto *cand = dynamic_cast<const pat::PackedCandidate*>(&(*newCandPtr));
       if (cand->puppiWeight() < 0.01) continue; // [94X] ignore particles w/ extremely low puppi weights
       // Here we get the original PackedCandidate as stored in MiniAOD (i.e., not puppi weighted)
       // https://github.com/cms-sw/cmssw/pull/28035
