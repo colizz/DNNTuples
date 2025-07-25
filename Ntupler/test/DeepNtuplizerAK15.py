@@ -34,10 +34,19 @@ options.register('inputDataset',
                  "Input dataset")
 options.register('isTrainSample', True, VarParsing.multiplicity.singleton,
                  VarParsing.varType.bool, "if the sample is used for training")
+# special output configs
+options.register('addMET', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "add MET vars to output file")
+options.register('addLowLevel', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "add low-level vars to output file")
+options.register('isMDTagger', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "use MD tagger categorisation")
+options.register('keepAllEvents', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "keep all events for QCD and ttbar when creating inference dataset (isTrainSample=False)")
+options.register('adhocFixMode', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "ad-hoc fix mode")
 
 options.parseArguments()
 
 # test command: cmsRun DeepNtuplizerAK8.py maxEvents=100 isTrainSample=1
+
+# force to keep all events for fine-tuning use case
+options.keepAllEvents = True
 
 globalTagMap = {
     'auto': 'auto:phase1_2018_realistic',
@@ -112,7 +121,8 @@ btagDiscriminatorsCustom = []
 if doCustomTaggerInference:
     from DeepNTuples.Ntupler.jetTools import updateJetCollection # use custom updataJetCollection
     from DeepNTuples.Ntupler.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff import _pfMassDecorrelatedInclParticleTransformerAK15V2JetTagsAllSelected
-    btagDiscriminatorsCustom = [] # + _pfMassDecorrelatedInclParticleTransformerAK15V2JetTagsAllSelected
+    # inference the GloParTv2-AK15 tagger
+    btagDiscriminatorsCustom = [] + _pfMassDecorrelatedInclParticleTransformerAK15V2JetTagsAllSelected
 
 
 JETCorrLevels = ['L2Relative', 'L3Absolute']
@@ -234,6 +244,13 @@ process.deepntuplizer.isHerwig = 'herwig' in _inputfile.lower()
 process.deepntuplizer.isMadGraph = 'madgraph' in _inputfile.lower()
 
 process.deepntuplizer.isTrainSample = options.isTrainSample
+
+# special output configs
+process.deepntuplizer.addMET = options.addMET
+process.deepntuplizer.addLowLevel = options.addLowLevel
+process.deepntuplizer.isMDTagger = options.isMDTagger
+process.deepntuplizer.keepAllEvents = options.keepAllEvents
+process.deepntuplizer.adhocFixMode = options.adhocFixMode
 #==============================================================================================================================#
 process.p = cms.Path(process.deepntuplizer)
 process.p.associate(patTask)

@@ -49,6 +49,9 @@ options.parseArguments()
 
 # test command: cmsRun DeepNtuplizerAK8.py maxEvents=100 isTrainSample=1
 
+# force to keep all events for fine-tuning use case
+options.keepAllEvents = True
+
 globalTagMap = {
     'auto': 'auto:phase1_2018_realistic',
     'UL18': '106X_upgrade2018_realistic_v16_L1v1',
