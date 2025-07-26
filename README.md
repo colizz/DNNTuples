@@ -10,7 +10,7 @@ cmsenv
 bash <(curl -s https://raw.githubusercontent.com/colizz/DNNTuples/dev-UL-hww/Ntupler/scripts/install_onnxruntime.sh)
 
 # clone this repo into "DeepNTuples" directory
-git clone git@github.com:colizz/DNNTuplesAK8.git DeepNTuples -b dev-UL-hww
+git clone git@github.com:colizz/DNNTuplesAK8.git DeepNTuples -b dev-UL-v10-vhfinetune
 
 scram b -j8
 ```
