@@ -42,6 +42,7 @@ private:
   bool isTTBarSample_ = false;
   bool isHVV2DVarMassSample_ = false;
   bool isTrainSample_ = false;
+  bool keepAllEvents_ = false;
   bool isMDTagger_ = true;
   bool fillSeparateLabels_ = false;
   int adhocFixMode_ = 0;

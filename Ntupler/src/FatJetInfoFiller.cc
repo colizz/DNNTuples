@@ -18,6 +18,7 @@ void FatJetInfoFiller::readConfig(const edm::ParameterSet& iConfig, edm::Consume
   isQCDSample_ = iConfig.getUntrackedParameter<bool>("isQCDSample", false);
   isTTBarSample_ = iConfig.getUntrackedParameter<bool>("isTTBarSample", false);
   isHVV2DVarMassSample_ = iConfig.getUntrackedParameter<bool>("isHVV2DVarMassSample", false);
+  keepAllEvents_ = iConfig.getUntrackedParameter<bool>("keepAllEvents", false);
   sample_use_pythia_ = iConfig.getParameter<bool>("isPythia");
   sample_use_herwig_ = iConfig.getParameter<bool>("isHerwig");
   sample_use_madgraph_ = iConfig.getParameter<bool>("isMadGraph");
@@ -264,7 +265,7 @@ bool FatJetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
   }
 
   // veto unmatched jets in signal samples for training
-  if (isTrainSample_ && !isQCDSample_ && fjlabel.rfind("QCD_", 0) == 0)
+  if (isTrainSample_ && !keepAllEvents_ && !isQCDSample_ && fjlabel.rfind("QCD_", 0) == 0)
     return false;
 
   // ad-hoc fixes
