@@ -2,8 +2,8 @@
 
 ## Setup
 ```bash
-cmsrel CMSSW_15_0_0
-cd CMSSW_15_0_0/src
+cmsrel CMSSW_15_0_19
+cd CMSSW_15_0_19/src
 cmsenv
 
 # clone this repo into "DeepNTuples" directory
