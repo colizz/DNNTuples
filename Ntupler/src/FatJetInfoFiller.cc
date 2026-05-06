@@ -97,6 +97,10 @@ void FatJetInfoFiller::book() {
   data.add<float>("fj_gen_mass", 0);
   data.add<float>("fj_gen_pid", 0);
   data.add<float>("fj_gen_deltaR", 999);
+  data.add<float>("fj_genmother_pt", 0);
+  data.add<float>("fj_genmother_eta", 0);
+  data.add<float>("fj_genmother_phi", 0);
+  data.add<float>("fj_genmother_mass", 0);
   data.add<float>("fj_gendau1_pt", 0);
   data.add<float>("fj_gendau1_eta", 0);
   data.add<float>("fj_gendau1_phi", 0);
@@ -318,6 +322,11 @@ bool FatJetInfoFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
   data.fill<float>("fj_gen_mass", resparts_size > 0 ? resparts[0]->mass() : 0);
   data.fill<float>("fj_gen_pid", resparts_size > 0 ? resparts[0]->pdgId() : 0);
   data.fill<float>("fj_gen_deltaR", resparts_size > 0 ? reco::deltaR(jet, resparts[0]->p4()) : 999);
+  const reco::Candidate* genmother = (resparts_size > 0 && resparts[0]->numberOfMothers() > 0) ? resparts[0]->mother(0) : nullptr;
+  data.fill<float>("fj_genmother_pt", genmother ? genmother->pt() : -999);
+  data.fill<float>("fj_genmother_eta", genmother ? genmother->eta() : -999);
+  data.fill<float>("fj_genmother_phi", genmother ? genmother->phi() : -999);
+  data.fill<float>("fj_genmother_mass", genmother ? genmother->mass() : 0);
   data.fill<float>("fj_gendau1_pt", resparts_size > 1 ? resparts[1]->pt() : -999);
   data.fill<float>("fj_gendau1_eta", resparts_size > 1 ? resparts[1]->eta() : -999);
   data.fill<float>("fj_gendau1_phi", resparts_size > 1 ? resparts[1]->phi() : -999);
