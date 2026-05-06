@@ -565,6 +565,9 @@ void FatJetMatching::higgs_label(const pat::Jet* jet, const reco::GenParticle *p
   enum HDecay {h_2p, h_tautau, h_qtau, h_WW, h_ZZ, h_WHorZH, h_null};
   HDecay hdecay = h_null;
   auto hdaus = getDaughters(higgs);
+  if (hdaus.size() < 2) {
+    return;
+  }
   if (higgs->numberOfDaughters() >= 3) {
     // e.g., h->Vqq or h->qqqq
     throw std::runtime_error("[FatJetMatching::higgs_label] H decays to 3/4 objects: not implemented");

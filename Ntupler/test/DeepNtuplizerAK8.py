@@ -5,8 +5,10 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing('analysis')
 
 options.outputFile = 'output.root'
-# options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/H3ToHHToWHorZH_HToAA_MX-Var_MH-15to650/20UL17MiniAODv2/miniv2_65373-4.root' ## H->WH/ZH->aaxx
-options.inputFiles = 'file:/afs/cern.ch/user/c/coli/miniv6.root'
+# options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/GluGluToBulkGravitonToHHTo4QGluLTau_13p6TeV_MH-125_3PtBinForInfer_narrow/24MiniAODv6/miniv6_5238353-0.root' # 2024 H->2prong
+# options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/GluGluToBulkGravitonToZZ_13p6TeV_3PtBinForInfer_narrow/24MiniAODv6/miniv6_5238357-0.root' # 2024 Z->qq
+options.inputFiles = '/store/cmst3/group/vhcc/sfTuples/GluGluToBulkGravitonToWW_13p6TeV_3PtBinForInfer_narrow/24MiniAODv6/miniv6_5238356-0.root' # 2024 W->qq
+# options.inputFiles = 'file:/afs/cern.ch/user/c/coli/miniv6.root'
 
 options.maxEvents = -1
 
