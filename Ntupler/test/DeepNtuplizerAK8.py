@@ -82,7 +82,7 @@ assert useReclusteredJets == False, 'Reclustering jets is not supported in this 
 srcJets = cms.InputTag('slimmedJetsAK8') # use default fatjet collection in MiniAOD
 
 # !!! as a starting point of Nano v15 routines: do not do custom tagger inference !!!
-doCustomTaggerInference = False
+doCustomTaggerInference = True
 
 # from dnntuple v9: infer the new tagger so as to store the hidden layer scores in a special branch jet_custom_discs
 btagDiscriminatorsCustomSaveAsCompact = []
@@ -107,7 +107,19 @@ if doCustomTaggerInference:
             ]
         ]
     _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsSelected = [disc for disc in _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsAll if 'hidNeuron' not in disc]
-    btagDiscriminatorsCustomSaveAsSeparate += _pfMassDecorrelatedDeepHWWV1JetTagsAll + _pfMassDecorrelatedInclParticleTransformerV1JetTagsSelected + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScoresSelected + _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsSelected
+    # only infer GloParT v1 and v2
+    btagDiscriminatorsCustomSaveAsSeparate += _pfMassDecorrelatedInclParticleTransformerV1JetTagsSelected + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScoresSelected
+    # btagDiscriminatorsCustomSaveAsSeparate += _pfMassDecorrelatedDeepHWWV1JetTagsAll + _pfMassDecorrelatedInclParticleTransformerV1JetTagsSelected + _pfMassDecorrelatedInclParticleTransformerV2HidLayerJetTagsProbsRawScoresSelected + _pfMassDecorrelatedInclParticleTransformerV3HidLayerJetTagsSelected
+
+    # do inference
+    updateJetCollection(
+        process,
+        jetSource=srcJets,
+        rParam=jetR,
+        jetCorrections=('AK8PFPuppi', cms.vstring(['L2Relative', 'L3Absolute']), 'None'),
+        btagDiscriminators=btagDiscriminatorsCustomSaveAsCompact + btagDiscriminatorsCustomSaveAsSeparate,
+    )
+    srcJets = cms.InputTag('selectedUpdatedPatJets')
 
 # ---------------------------------------------------------
 from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask, addToProcessAndTask
