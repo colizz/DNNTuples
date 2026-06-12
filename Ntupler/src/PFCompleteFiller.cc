@@ -17,12 +17,14 @@ void PFCompleteFiller::readConfig(const edm::ParameterSet& iConfig, edm::Consume
   vtxToken_ = cc.consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
   svToken_ = cc.consumes<reco::VertexCompositePtrCandidateCollection>(iConfig.getParameter<edm::InputTag>("SVs"));
   ltToken_ = cc.consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("losttracks"));
+  photonToken_ = cc.consumes<edm::View<pat::Photon>>(iConfig.getParameter<edm::InputTag>("photons"));
 }
 
 void PFCompleteFiller::readEvent(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByToken(vtxToken_, vertices);
   iEvent.getByToken(svToken_, SVs);
   iEvent.getByToken(ltToken_, LTs);
+  iEvent.getByToken(photonToken_, photons);
   builder_ = iSetup.getHandle(transientTrackBuilderToken_);
 }
 
@@ -31,6 +33,7 @@ void PFCompleteFiller::book() {
   data.add<int>("n_cpfcands", 0);
   data.add<int>("n_npfcands", 0);
   data.add<int>("n_lts", 0);
+  data.add<int>("n_photons", 0);
 
   // ==================== charged pf candidates & lost tracks ====================
   
@@ -197,20 +200,72 @@ void PFCompleteFiller::book() {
   data.addMulti<float>("npfcand_hcalFrac");
   data.addMulti<float>("npfcand_hcalFracCalib");
 
+  // for photons
+  data.addMulti<float>("photon_pt");
+  data.addMulti<float>("photon_eta");
+  data.addMulti<float>("photon_phi");
+  data.addMulti<float>("photon_energy");
+  data.addMulti<float>("photon_dr");
+
+  // shower shape
+  data.addMulti<float>("photon_r9");
+
+  data.addMulti<float>("photon_sigmaIetaIeta");
+  data.addMulti<float>("photon_sigmaIetaIphi");
+
+  data.addMulti<float>("photon_etaWidth");
+  data.addMulti<float>("photon_phiWidth");
+
+  data.addMulti<float>("photon_s4");
+
+  // H/E
+  data.addMulti<float>("photon_hoe");
+
+  // isolation
+  data.addMulti<float>("photon_chIso");
+  data.addMulti<float>("photon_neuIso");
+  data.addMulti<float>("photon_phoIso");
+
+  data.addMulti<float>("photon_ecalPFClusterIso");
+  data.addMulti<float>("photon_hcalPFClusterIso");
+
+  data.addMulti<float>("photon_pfChargedIso");
+  data.addMulti<float>("photon_pfChargedIsoWorstVtx");
+
+  // track isolation
+  data.addMulti<float>("photon_trkSumPtHollowConeDR03");
+  data.addMulti<float>("photon_trkSumPtSolidConeDR04");
+
+  // preshower
+  data.addMulti<float>("photon_esEffSigmaRR");
+  data.addMulti<float>("photon_esEnergyOverRawE");
+
+  // supercluster
+  data.addMulti<float>("photon_scRawEnergy");
+  data.addMulti<float>("photon_eOverRawE");
 }
 
 bool PFCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& jet_helper) {
 
   std::vector<reco::CandidatePtr> cpfPtrs, npfPtrs;
   std::map<reco::CandidatePtr, bool> isLostTrackMap;
+  std::map<reco::CandidatePtr, bool> movedElectronMap;
   const auto& pfCands = jet_helper.getJetConstituents();
   int n_cpfcands = 0, n_npfcands = 0, n_lts = 0;
   for (auto& cand : pfCands){
+    int pdg = std::abs(cand->pdgId());
     if (cand->charge() != 0) {
-      cpfPtrs.push_back(cand);
-      isLostTrackMap[cand] = false;
-      n_cpfcands++;
-    }else {
+      // move electrons into the neutral PF collection (as photon-like)
+      if (pdg == 11) {
+        npfPtrs.push_back(cand);
+        movedElectronMap[cand] = true;
+        n_npfcands++;
+      } else {
+        cpfPtrs.push_back(cand);
+        isLostTrackMap[cand] = false;
+        n_cpfcands++;
+      }
+    } else {
       npfPtrs.push_back(cand);
       n_npfcands++;
     }
@@ -228,6 +283,7 @@ bool PFCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
   data.fill<int>("n_cpfcands", n_cpfcands);
   data.fill<int>("n_npfcands", n_npfcands);
   data.fill<int>("n_lts", n_lts);
+  data.fill<int>("n_photons", photons->size());
 
   float etasign = jet.eta()>0 ? 1 : -1;
 
@@ -593,7 +649,6 @@ bool PFCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
 
     data.fillMulti<float>("npfcand_phirel", reco::deltaPhi(*packed_cand, jet));
     data.fillMulti<float>("npfcand_etarel", etasign * (packed_cand->eta() - jet.eta()));
-    // data.fillMulti<float>("npfcand_deltaR", reco::deltaR(*packed_cand, jet));
     data.fillMulti<float>("npfcand_abseta", std::abs(packed_cand->eta()));
 
     data.fillMulti<float>("npfcand_puppiw", jet_helper.getPuppiWeight(cand));
@@ -612,7 +667,9 @@ bool PFCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
       data.fillMulti<float>("npfcand_dr_uncorrsj2", subjets.size()>1 ? reco::deltaR(*packed_cand, *subjets.at(1)) : -1);
     }
 
-    data.fillMulti<float>("npfcand_isGamma", std::abs(packed_cand->pdgId())==22);
+    bool isGamma = std::abs(packed_cand->pdgId())==22;
+    if (movedElectronMap.count(cand) && movedElectronMap[cand]) isGamma = true;
+    data.fillMulti<float>("npfcand_isGamma", isGamma);
     data.fillMulti<float>("npfcand_isNeutralHad", std::abs(packed_cand->pdgId())==130);
 
     // for neutral
@@ -624,7 +681,127 @@ bool PFCompleteFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper&
     }
     data.fillMulti<float>("npfcand_hcalFrac", hcal_fraction);
     data.fillMulti<float>("npfcand_hcalFracCalib", packed_cand->hcalFraction());
+  }
 
+  // for photons
+  // for (const auto& photon : *photons) {
+  //   float dr = reco::deltaR(photon, jet);
+  //   if (dr < 0.8) {
+  //     data.fillMulti<float>("photon_pt", photon.pt());
+  //     data.fillMulti<float>("photon_eta", photon.eta());
+  //     data.fillMulti<float>("photon_phi", photon.phi());
+  //     data.fillMulti<float>("photon_energy", photon.energy());
+  //     data.fillMulti<float>("photon_dr", dr);
+  //     data.fillMulti<float>("photon_hoe", photon.hadTowOverEm()); // hadronicOverEm, MiniAOD
+  //     data.fillMulti<float>("photon_r9", photon.r9());
+  //     data.fillMulti<float>("photon_chIso", photon.chargedHadronIso());
+  //     data.fillMulti<float>("photon_neuIso", photon.neutralHadronIso());
+  //     data.fillMulti<float>("photon_phoIso", photon.photonIso());
+  //   }
+  // }
+
+  // for photons
+  for (const auto& photon : *photons) {
+
+    float dr = reco::deltaR(photon, jet);
+
+    if (dr < 0.8) {
+
+      // basic kinematics
+      data.fillMulti<float>("photon_pt", photon.pt());
+      data.fillMulti<float>("photon_eta", photon.eta());
+      data.fillMulti<float>("photon_phi", photon.phi());
+      data.fillMulti<float>("photon_energy", photon.energy());
+      data.fillMulti<float>("photon_dr", dr);
+
+      // shower shape
+      data.fillMulti<float>("photon_r9", photon.r9());
+
+      data.fillMulti<float>("photon_sigmaIetaIeta",
+                            photon.full5x5_sigmaIetaIeta());
+
+      data.fillMulti<float>("photon_etaWidth",
+                            photon.superCluster()->etaWidth());
+
+      data.fillMulti<float>("photon_phiWidth",
+                            photon.superCluster()->phiWidth());
+
+      data.fillMulti<float>("photon_s4",
+                            photon.full5x5_showerShapeVariables().e2x2 /
+                            photon.full5x5_showerShapeVariables().e5x5);
+
+      // H/E
+      data.fillMulti<float>("photon_hoe",
+                            photon.hadTowOverEm());
+
+      // isolation
+      data.fillMulti<float>("photon_chIso",
+                            photon.chargedHadronIso());
+
+      data.fillMulti<float>("photon_neuIso",
+                            photon.neutralHadronIso());
+
+      data.fillMulti<float>("photon_phoIso",
+                            photon.photonIso());
+
+      data.fillMulti<float>("photon_ecalPFClusterIso",
+                            photon.ecalPFClusterIso());
+
+      data.fillMulti<float>("photon_hcalPFClusterIso",
+                            photon.hcalPFClusterIso());
+
+      data.fillMulti<float>("photon_pfChargedIso",
+                            photon.chargedHadronIso());
+
+      // worst vertex charged isolation
+      data.fillMulti<float>("photon_pfChargedIsoWorstVtx",
+                            photon.chargedHadronWorstVtxIso());
+
+      // track isolation
+      data.fillMulti<float>("photon_trkSumPtHollowConeDR03",
+                            photon.trkSumPtHollowConeDR03());
+
+      data.fillMulti<float>("photon_trkSumPtSolidConeDR04",
+                            photon.trkSumPtSolidConeDR04());
+
+      // preshower
+      data.fillMulti<float>("photon_esEffSigmaRR",
+                            photon.showerShapeVariables().effSigmaRR);
+
+      float esEnergyOverRawE = -1.f;
+
+      if (photon.superCluster().isNonnull()) {
+
+        float rawE = photon.superCluster()->rawEnergy();
+
+        if (rawE > 0.f) {
+          esEnergyOverRawE =
+            photon.superCluster()->preshowerEnergy() / rawE;
+        }
+      }
+
+      data.fillMulti<float>("photon_esEnergyOverRawE",
+                            esEnergyOverRawE);
+
+      // sigma ieta iphi
+      data.fillMulti<float>("photon_sigmaIetaIphi",
+                            photon.full5x5_showerShapeVariables().sigmaIetaIphi);
+
+      // raw supercluster quantities
+      if (photon.superCluster().isNonnull()) {
+
+        float rawE = photon.superCluster()->rawEnergy();
+
+        data.fillMulti<float>("photon_scRawEnergy", rawE);
+
+        if (rawE > 0.) {
+          data.fillMulti<float>("photon_eOverRawE",
+                                photon.energy() / rawE);
+        } else {
+          data.fillMulti<float>("photon_eOverRawE", -1.);
+        }
+      }
+    }
   }
 
 

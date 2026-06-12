@@ -11,6 +11,7 @@
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "DeepNTuples/BTagHelpers/interface/TrackInfoBuilder.h"
 #include "DataFormats/Candidate/interface/VertexCompositePtrCandidate.h"
+#include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/Common/interface/ValueMap.h"
@@ -44,6 +45,9 @@ private:
 
   edm::EDGetTokenT<reco::VertexCompositePtrCandidateCollection> svToken_;
   edm::Handle<reco::VertexCompositePtrCandidateCollection> SVs;
+
+  edm::EDGetTokenT<edm::View<pat::Photon>> photonToken_;
+  edm::Handle<edm::View<pat::Photon>> photons;
 
   edm::EDGetTokenT<edm::View<reco::Candidate>> ltToken_;
   edm::Handle<edm::View<reco::Candidate>> LTs;
